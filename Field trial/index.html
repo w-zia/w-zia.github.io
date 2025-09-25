@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Field Trials Weather Mapping Platform</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <h1>UK Field Trials - Weather Mapping</h1>
+            </div>
+            <div class="nav-search">
+                <input type="text" id="searchInput" placeholder="Search locations, trials, or companies..." class="search-input">
+                <button id="searchBtn" class="btn btn--primary btn--sm">Search</button>
+            </div>
+            <div class="nav-controls">
+                <button id="mobileMenuBtn" class="mobile-menu-btn">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <button id="exportBtn" class="btn btn--outline btn--sm">Export</button>
+                <button id="refreshDataBtn" class="btn btn--outline btn--sm">Refresh Weather</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Application Container -->
+    <div class="app-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar sidebar--left" id="leftSidebar">
+            <div class="sidebar-content">
+                <!-- Base Map Controls -->
+                <section class="control-section">
+                    <h3>Base Map</h3>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="basemap" value="street" checked>
+                            <span>Street View</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="basemap" value="satellite">
+                            <span>Satellite</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="basemap" value="terrain">
+                            <span>Terrain</span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Weather Data Layers -->
+                <section class="control-section">
+                    <h3>Weather Data Layers</h3>
+                    <div class="layer-controls">
+                        <div class="layer-item">
+                            <label class="layer-label">
+                                <input type="checkbox" id="windLayer">
+                                <span>🌪️ Wind Speed</span>
+                            </label>
+                            <div class="opacity-control">
+                                <input type="range" id="windOpacity" min="0" max="100" value="70" class="opacity-slider">
+                                <span class="opacity-value">70%</span>
+                            </div>
+                        </div>
+                        <div class="layer-item">
+                            <label class="layer-label">
+                                <input type="checkbox" id="temperatureLayer">
+                                <span>🌡️ Temperature</span>
+                            </label>
+                            <div class="opacity-control">
+                                <input type="range" id="temperatureOpacity" min="0" max="100" value="70" class="opacity-slider">
+                                <span class="opacity-value">70%</span>
+                            </div>
+                        </div>
+                        <div class="layer-item">
+                            <label class="layer-label">
+                                <input type="checkbox" id="precipitationLayer">
+                                <span>🌧️ Precipitation</span>
+                            </label>
+                            <div class="opacity-control">
+                                <input type="range" id="precipitationOpacity" min="0" max="100" value="70" class="opacity-slider">
+                                <span class="opacity-value">70%</span>
+                            </div>
+                        </div>
+                        <div class="layer-item">
+                            <label class="layer-label">
+                                <input type="checkbox" id="solarLayer">
+                                <span>☀️ Solar Irradiation</span>
+                            </label>
+                            <div class="opacity-control">
+                                <input type="range" id="solarOpacity" min="0" max="100" value="70" class="opacity-slider">
+                                <span class="opacity-value">70%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="data-attribution">
+                        <p><small>Weather visualization © Simulated realistic patterns</small></p>
+                        <p><small>Last updated: <span id="lastUpdated">Never</span></small></p>
+                        <button id="refreshAllLayers" class="btn btn--secondary btn--sm btn--full-width mt-8">Refresh All Layers</button>
+                    </div>
+                </section>
+
+                <!-- Weather Legends -->
+                <section class="control-section" id="weatherLegends">
+                    <h3>Weather Data Legends</h3>
+                    <div class="legends-container">
+                        <!-- Legend content will be populated dynamically -->
+                    </div>
+                </section>
+
+                <!-- Filters -->
+                <section class="control-section">
+                    <h3>Trial Filters</h3>
+                    <div class="filter-group">
+                        <div class="form-group">
+                            <label class="form-label">Technology Type</label>
+                            <div class="checkbox-group" id="technologyFilters">
+                                <!-- Technology checkboxes will be populated by JavaScript -->
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Company</label>
+                            <select id="companyFilter" class="form-control">
+                                <option value="">All Companies</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select id="statusFilter" class="form-control">
+                                <option value="">All Status</option>
+                                <option value="completed">Completed</option>
+                                <option value="ongoing">Ongoing</option>
+                                <option value="planned">Planned</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <button id="clearFilters" class="btn btn--secondary btn--sm btn--full-width">Clear Filters</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Technology Legend -->
+                <section class="control-section">
+                    <h3>Technology Legend</h3>
+                    <div class="legend">
+                        <div class="legend-section">
+                            <h4>Technology Types</h4>
+                            <div id="technologyLegend" class="legend-items">
+                                <!-- Legend items will be populated by JavaScript -->
+                            </div>
+                        </div>
+                        <div class="legend-section">
+                            <h4>Trial Status</h4>
+                            <div class="legend-items">
+                                <div class="legend-item">
+                                    <span class="status-indicator status--completed"></span>
+                                    <span>Completed</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="status-indicator status--ongoing"></span>
+                                    <span>Ongoing</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="status-indicator status--planned"></span>
+                                    <span>Planned</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </aside>
+
+        <!-- Map Container -->
+        <main class="map-container">
+            <div id="map" class="map"></div>
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="loading-spinner"></div>
+                <p>Loading weather visualization...</p>
+            </div>
+            <div class="map-controls">
+                <!-- <button id="getLocationDataBtn" class="btn btn--secondary btn--sm">Get Weather at Location</button> -->
+                <div class="weather-info" id="weatherInfo">
+                    <p><small>Click map to get weather data at specific point</small></p>
+                </div>
+            </div>
+            <div class="map-info-overlay">
+                <div class="info-card">
+                    <h4>Weather Overlay Features</h4>
+                    <ul>
+                        <li>🌪️ <strong>Wind:</strong> Higher speeds offshore & Scotland</li>
+                        <li>🌡️ <strong>Temperature:</strong> North-south gradient</li>
+                        <li>🌧️ <strong>Rain:</strong> Western areas typically wetter</li>
+                        <li>☀️ <strong>Solar:</strong> Southern England receives more</li>
+                    </ul>
+                    <button id="hideMapInfo" class="btn btn--sm">Hide</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar -->
+        <aside class="sidebar sidebar--right" id="rightSidebar">
+            <div class="sidebar-content">
+                <div class="sidebar-header">
+                    <button id="closeSidebar" class="close-btn">&times;</button>
+                </div>
+                <div id="trialDetails" class="trial-details">
+                    <!-- Trial details will be populated by JavaScript -->
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Mobile Bottom Sheet -->
+    <div class="mobile-bottom-sheet" id="mobileBottomSheet">
+        <div class="bottom-sheet-handle"></div>
+        <div class="bottom-sheet-content" id="mobileTrialDetails">
+            <!-- Mobile trial details will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast">
+        <span id="toastMessage"></span>
+        <button id="toastClose">&times;</button>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Wind Farm Planning Tool - Progressive Data Loading</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1 class="header-title">UK Wind Farm Planning Platform</h1>
+                <span class="header-subtitle">Progressive Data Loading • Complete UK Coverage</span>
+            </div>
+            <div class="header-right">
+                <div class="stats-dashboard">
+                    <div class="stat-item">
+                        <span class="stat-value" id="totalProjects">15</span>
+                        <span class="stat-label">Projects Visible</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="totalCapacity">8,547</span>
+                        <span class="stat-label">Total MW</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="activeLayers">3</span>
+                        <span class="stat-label">Active Layers</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Progressive Data Loading</h3>
+                <p class="sidebar-subtitle">Load data incrementally to see immediate changes</p>
+            </div>
+
+            <div class="sidebar-content">
+                <!-- Wind Farm Projects Section -->
+                <div class="control-section">
+                    <h4 class="section-title">
+                        Wind Farm Projects
+                        <span class="project-count" id="projectCount">15 loaded</span>
+                    </h4>
+                    
+                    <div class="loading-controls">
+                        <button class="btn btn--primary loading-btn" id="loadMoreProjects">
+                            <span class="btn-icon">⬇️</span>
+                            <span class="btn-text">Load More Projects</span>
+                            <span class="btn-count">(+35 projects)</span>
+                        </button>
+                        
+                        <div class="load-info">
+                            <p>Currently showing major operational wind farms. Click to load pipeline projects, Scottish developments, and smaller installations.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid Infrastructure Section -->
+                <div class="control-section">
+                    <h4 class="section-title">
+                        Grid Infrastructure
+                        <span class="grid-count" id="gridCount">3 lines loaded</span>
+                    </h4>
+                    
+                    <div class="loading-controls">
+                        <button class="btn btn--primary loading-btn" id="loadAllGridData">
+                            <span class="btn-icon">⚡</span>
+                            <span class="btn-text">Load All Grid Data</span>
+                            <span class="btn-count">(+11 items)</span>
+                        </button>
+                        
+                        <div class="load-info">
+                            <p>Add 275kV lines, 132kV distribution, and additional substations across the UK transmission network.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Environmental Constraints Section -->
+                <div class="control-section">
+                    <h4 class="section-title">
+                        Protected Areas
+                        <span class="env-count" id="envCount">0 areas loaded</span>
+                    </h4>
+                    
+                    <div class="loading-controls">
+                        <button class="btn btn--primary loading-btn" id="loadProtectedAreas">
+                            <span class="btn-icon">🌿</span>
+                            <span class="btn-text">Load Protected Areas</span>
+                            <span class="btn-count">(+7 zones)</span>
+                        </button>
+                        
+                        <div class="load-info">
+                            <p>Show National Parks, SPAs, SACs, MCZs and other environmental constraints that affect wind farm development.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aviation Constraints Section -->
+                <div class="control-section">
+                    <h4 class="section-title">
+                        Aviation Constraints
+                        <span class="aviation-count" id="aviationCount">0 zones loaded</span>
+                    </h4>
+                    
+                    <div class="loading-controls">
+                        <button class="btn btn--primary loading-btn" id="loadAviationConstraints">
+                            <span class="btn-icon">✈️</span>
+                            <span class="btn-text">Load Aviation Constraints</span>
+                            <span class="btn-count">(+5 zones)</span>
+                        </button>
+                        
+                        <div class="load-info">
+                            <p>Display radar exclusion zones, military training areas, airport flight paths and other aviation restrictions.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Full Database Section -->
+                <div class="control-section">
+                    <h4 class="section-title">Complete Database</h4>
+                    
+                    <div class="loading-controls">
+                        <button class="btn btn--secondary loading-btn full-db-btn" id="loadFullDatabase">
+                            <span class="btn-icon">🗄️</span>
+                            <span class="btn-text">Load Full Database</span>
+                            <span class="btn-count">(All remaining data)</span>
+                        </button>
+                        
+                        <div class="load-info">
+                            <p>Load all available data at once. This doesn't interfere with individual loading buttons above.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layer Toggle Section -->
+                <div class="control-section">
+                    <h4 class="section-title">Layer Controls</h4>
+                    
+                    <div class="layer-toggles">
+                        <label class="toggle-item">
+                            <input type="checkbox" id="toggleWindFarms" checked>
+                            <span class="toggle-label">Wind Farm Projects</span>
+                        </label>
+                        
+                        <label class="toggle-item">
+                            <input type="checkbox" id="toggleGridLines" checked>
+                            <span class="toggle-label">Grid Infrastructure</span>
+                        </label>
+                        
+                        <label class="toggle-item">
+                            <input type="checkbox" id="toggleProtected" checked>
+                            <span class="toggle-label">Protected Areas</span>
+                        </label>
+                        
+                        <label class="toggle-item">
+                            <input type="checkbox" id="toggleAviation" checked>
+                            <span class="toggle-label">Aviation Constraints</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="map-container">
+            <div id="map" class="map"></div>
+            
+            <!-- Status Toast -->
+            <div class="status-toast hidden" id="statusToast">
+                <div class="toast-content">
+                    <span class="toast-icon">✅</span>
+                    <span class="toast-message">Data loaded successfully!</span>
+                </div>
+            </div>
+
+            <!-- Map Legend -->
+            <div class="map-legend">
+                <h4>Map Legend</h4>
+                
+                <div class="legend-section">
+                    <h5>Wind Farms</h5>
+                    <div class="legend-item">
+                        <span class="legend-marker offshore"></span>
+                        <span>Offshore Operational</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-marker onshore"></span>
+                        <span>Onshore Operational</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-marker construction"></span>
+                        <span>Under Construction</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-marker consented"></span>
+                        <span>Consented</span>
+                    </div>
+                </div>
+                
+                <div class="legend-section">
+                    <h5>Grid Infrastructure</h5>
+                    <div class="legend-item">
+                        <span class="legend-line line-400kv"></span>
+                        <span>400kV Transmission</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line line-275kv"></span>
+                        <span>275kV Lines</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line line-132kv"></span>
+                        <span>132kV Distribution</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-marker substation"></span>
+                        <span>Substations</span>
+                    </div>
+                </div>
+
+                <div class="legend-section">
+                    <h5>Constraints</h5>
+                    <div class="legend-item">
+                        <span class="legend-area protected"></span>
+                        <span>Protected Areas</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-area aviation"></span>
+                        <span>Aviation Zones</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

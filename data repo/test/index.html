@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NZTC Data Discovery Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-leaf"></i>
+                    <span>NZTC</span>
+                    <span class="logo-subtitle">Data Platform</span>
+                </div>
+                
+                <nav class="main-nav">
+                    <ul class="nav-list">
+                        <li><a href="#" class="nav-link active" data-page="home"><i class="fas fa-home"></i> Home</a></li>
+                        <li><a href="#" class="nav-link" data-page="browse"><i class="fas fa-search"></i> Browse Data</a></li>
+                        <li><a href="#" class="nav-link" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                        <li><a href="#" class="nav-link" data-page="api"><i class="fas fa-code"></i> API Access</a></li>
+                        <li><a href="#" class="nav-link" data-page="docs"><i class="fas fa-book"></i> Documentation</a></li>
+                        <li><a href="#" class="nav-link" data-page="support"><i class="fas fa-life-ring"></i> Support</a></li>
+                    </ul>
+                </nav>
+                
+                <div class="header-actions">
+                    <div class="user-menu">
+                        <button class="btn btn--outline btn--sm user-menu-btn">
+                            <i class="fas fa-user"></i>
+                            <span>Sarah Chen</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="user-dropdown hidden">
+                            <a href="#" class="dropdown-item"><i class="fas fa-user-cog"></i> Account Settings</a>
+                            <a href="#" class="dropdown-item"><i class="fas fa-key"></i> API Keys</a>
+                            <a href="#" class="dropdown-item"><i class="fas fa-credit-card"></i> Billing</a>
+                            <hr>
+                            <a href="#" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-container" id="breadcrumb-container">
+        <div class="container">
+            <nav class="breadcrumb">
+                <ol class="breadcrumb-list" id="breadcrumb-list">
+                    <li><a href="#" data-page="home">Home</a></li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main">
+        
+        <!-- Home Page -->
+        <div class="page-content" id="page-home">
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="container">
+                    <div class="hero-content">
+                        <div class="hero-text">
+                            <h1>Accelerate Energy Transition with Comprehensive Data</h1>
+                            <p class="hero-subtitle">Access real-time and curated datasets across all energy sectors. From hydrogen production to offshore wind, from CCUS to digital twins - everything you need for data-driven decision making.</p>
+                            <div class="hero-actions">
+                                <button class="btn btn--primary btn--lg" data-page="browse">Explore Data Sources</button>
+                                <button class="btn btn--outline btn--lg" data-page="api">Get API Access</button>
+                            </div>
+                            <div class="hero-stats">
+                                <div class="stat-item">
+                                    <span class="stat-value">52</span>
+                                    <span class="stat-label">Data Sources</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">13</span>
+                                    <span class="stat-label">Departments</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">2.5M+</span>
+                                    <span class="stat-label">API Calls</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">850+</span>
+                                    <span class="stat-label">Users</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hero-visual">
+                            <div class="live-data-showcase">
+                                <div class="showcase-card">
+                                    <div class="card-header">
+                                        <span class="live-badge"><i class="fas fa-circle"></i> LIVE</span>
+                                        <span class="data-quality high">High Quality</span>
+                                    </div>
+                                    <h4>NESO Wind & Solar</h4>
+                                    <div class="live-metrics">
+                                        <div class="metric">
+                                            <span class="metric-value">3,340 MW</span>
+                                            <span class="metric-label">Wind Forecast</span>
+                                        </div>
+                                        <div class="metric">
+                                            <span class="metric-value">1,250 MW</span>
+                                            <span class="metric-label">Solar Forecast</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Featured Sources -->
+            <section class="featured-sources">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Featured Data Sources</h2>
+                        <p>Most popular and high-quality datasets trusted by industry leaders</p>
+                    </div>
+                    <div class="featured-grid" id="featured-grid">
+                        <!-- Featured sources will be populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Access -->
+            <section class="quick-access">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Quick Access by Department</h2>
+                        <p>Find data sources organized by energy sector</p>
+                    </div>
+                    <div class="department-grid" id="department-grid">
+                        <!-- Department cards will be populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Subscription Tiers -->
+            <section class="subscription-tiers">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Choose Your Plan</h2>
+                        <p>Flexible pricing for internal teams and external organizations</p>
+                    </div>
+                    <div class="pricing-grid" id="pricing-grid">
+                        <!-- Pricing tiers will be populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Browse Data Page -->
+        <div class="page-content hidden" id="page-browse">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Browse Data Sources</h1>
+                    <p>Discover and explore comprehensive datasets across all energy sectors</p>
+                </div>
+                
+                <div class="browse-layout">
+                    <!-- Search Bar -->
+                    <div class="search-section">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="browse-search" placeholder="Search for data sources, departments, or keywords..." class="search-input">
+                            <button class="search-btn" type="button" id="browse-search-btn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="search-suggestions" id="search-suggestions">
+                            <!-- Auto-complete suggestions will appear here -->
+                        </div>
+                        <div class="search-filters">
+                            <select class="form-control" id="department-filter">
+                                <option value="">All Departments</option>
+                                <!-- Options populated by JavaScript -->
+                            </select>
+                            <select class="form-control" id="quality-filter">
+                                <option value="">All Quality Levels</option>
+                                <option value="high">High Quality</option>
+                                <option value="medium">Medium Quality</option>
+                                <option value="basic">Basic Quality</option>
+                            </select>
+                            <select class="form-control" id="freshness-filter">
+                                <option value="">All Updates</option>
+                                <option value="realtime">Real-time</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                            </select>
+                            <select class="form-control" id="access-filter">
+                                <option value="">All Access Types</option>
+                                <option value="open">Open Access</option>
+                                <option value="registration">Registration Required</option>
+                                <option value="subscription">Subscription</option>
+                            </select>
+                            <select class="form-control" id="format-filter">
+                                <option value="">All Formats</option>
+                                <option value="api">API</option>
+                                <option value="csv">CSV</option>
+                                <option value="excel">Excel</option>
+                                <option value="json">JSON</option>
+                                <option value="realtime">Real-time Stream</option>
+                            </select>
+                            <label class="live-toggle">
+                                <input type="checkbox" id="live-only-filter">
+                                <span>Live Data Only</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div class="results-section">
+                        <div class="results-header">
+                            <div class="results-info">
+                                <span id="browse-results-count">Loading data sources...</span>
+                            </div>
+                            <div class="results-controls">
+                                <select class="form-control" id="browse-sort">
+                                    <option value="relevance">Sort by Relevance</option>
+                                    <option value="popularity">Sort by Popularity</option>
+                                    <option value="quality">Sort by Quality</option>
+                                    <option value="freshness">Sort by Update Frequency</option>
+                                    <option value="name">Sort by Name A-Z</option>
+                                    <option value="recent">Sort by Most Recent</option>
+                                </select>
+                                <select class="form-control" id="results-per-page">
+                                    <option value="10">10 per page</option>
+                                    <option value="20">20 per page</option>
+                                    <option value="50">50 per page</option>
+                                </select>
+                                <button class="btn btn--outline btn--sm" id="export-results">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="browse-grid" id="browse-grid">
+                            <!-- Results will be populated by JavaScript -->
+                        </div>
+
+                        <!-- Enhanced Pagination -->
+                        <div class="pagination" id="browse-pagination">
+                            <div class="pagination-controls">
+                                <button class="btn btn--outline btn--sm" id="first-page">
+                                    <i class="fas fa-angle-double-left"></i> First
+                                </button>
+                                <button class="btn btn--outline btn--sm" id="prev-page">
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </button>
+                                <div class="page-numbers" id="page-numbers">
+                                    <!-- Page numbers will be populated by JavaScript -->
+                                </div>
+                                <button class="btn btn--outline btn--sm" id="next-page">
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </button>
+                                <button class="btn btn--outline btn--sm" id="last-page">
+                                    Last <i class="fas fa-angle-double-right"></i>
+                                </button>
+                            </div>
+                            <div class="pagination-info">
+                                <span id="page-info">Page 1 of 1</span>
+                                <span id="results-info">Showing 1-10 of 52 results</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other pages remain the same for now -->
+        <div class="page-content hidden" id="page-dashboard">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
+                    <p>Your personal data discovery hub</p>
+                </div>
+                <div class="dashboard-layout">
+                    <div class="dashboard-cards">
+                        <div class="dashboard-card">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-line" style="color: var(--color-success);"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>API Usage</h3>
+                                <div class="card-metric">
+                                    <span class="metric-value">8,420</span>
+                                    <span class="metric-unit">/ 10,000 calls</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 84.2%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dashboard-card">
+                            <div class="card-icon">
+                                <i class="fas fa-bookmark" style="color: var(--color-primary);"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Saved Sources</h3>
+                                <div class="card-metric">
+                                    <span class="metric-value">12</span>
+                                    <span class="metric-unit">data sources</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dashboard-card">
+                            <div class="card-icon">
+                                <i class="fas fa-crown" style="color: var(--color-warning);"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Subscription</h3>
+                                <div class="card-metric">
+                                    <span class="metric-value">Professional</span>
+                                </div>
+                                <a href="#" class="upgrade-link">Upgrade to Enterprise</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-content hidden" id="page-api">
+            <div class="container">
+                <div class="page-header">
+                    <h1>API Access</h1>
+                    <p>Integrate NZTC data into your applications and workflows</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-content hidden" id="page-docs">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Documentation</h1>
+                    <p>Comprehensive guides and references for using the NZTC Data Platform</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-content hidden" id="page-support">
+            <div class="container">
+                <div class="page-header">
+                    <h1>Support Center</h1>
+                    <p>Get help, submit feedback, and access resources</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <i class="fas fa-leaf"></i>
+                        <span>Net Zero Technology Centre</span>
+                    </div>
+                    <p>Accelerating the energy transition through comprehensive data discovery and integration.</p>
+                    <div class="footer-social">
+                        <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
+                        <a href="#" target="_blank"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" target="_blank"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Platform</h4>
+                    <ul>
+                        <li><a href="#" data-page="browse">Browse Data</a></li>
+                        <li><a href="#" data-page="api">API Access</a></li>
+                        <li><a href="#" data-page="docs">Documentation</a></li>
+                        <li><a href="#">Pricing</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#" data-page="docs">Getting Started</a></li>
+                        <li><a href="#" data-page="support">Help Center</a></li>
+                        <li><a href="#">Status Page</a></li>
+                        <li><a href="#">Changelog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#" target="_blank">About NZTC</a></li>
+                        <li><a href="#" target="_blank">Careers</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Net Zero Technology Centre. All rights reserved.</p>
+                <div class="footer-status">
+                    <span class="status-indicator online"></span>
+                    <span>All systems operational</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Data Source Details Modal -->
+    <div class="modal hidden" id="source-details-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="modal-source-title">Data Source Details</h3>
+                <button class="modal-close" id="close-details-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="source-details" id="source-details-content">
+                    <!-- Dynamic content will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Support Modal -->
+    <div class="modal hidden" id="contact-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Contact Support</h3>
+                <button class="modal-close" id="close-contact-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="contact-form">
+                    <div class="form-group">
+                        <label class="form-label">Subject</label>
+                        <select class="form-control" required>
+                            <option value="">Select a topic</option>
+                            <option value="technical">Technical Issue</option>
+                            <option value="billing">Billing Question</option>
+                            <option value="feature">Feature Request</option>
+                            <option value="data">Data Quality Issue</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <select class="form-control" required>
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-control" rows="5" placeholder="Describe your issue or question..." required></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn--outline" id="cancel-contact">Cancel</button>
+                        <button type="submit" class="btn btn--primary">Send Message</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
