@@ -906,19 +906,30 @@
     MM.draw();
   }
 
-  // --- 2) Quick edit shortcuts ----------------------------------------------
+// --- 2) Quick edit shortcuts ----------------------------------------------
 // F2: focus the label input (opens editor if needed)
-// I: toggle inspector open/close for the selected node
+// Ctrl+I: toggle inspector open/close for the selected node
 document.addEventListener('keydown', (e)=>{
   const key = e.key || '';
-  if(key === 'F2'){
-    ...
-  } else if(key.toLowerCase() === 'i'){
+  const isTyping = ['INPUT','TEXTAREA','SELECT'].includes((e.target && e.target.tagName) || '') 
+                   || (e.target && e.target.isContentEditable);
+
+  if (key === 'F2') {
+    if (!window.__MindMap?.selectedId) return;
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebar.style.display !== 'block') { sidebar.style.display = 'block'; }
     const editBtn = document.getElementById('sideEditBtn');
-    if(editBtn){ editBtn.click(); e.preventDefault(); }
+    const insp = document.getElementById('inspector');
+    if (insp && getComputedStyle(insp).display === 'none' && editBtn) { editBtn.click(); }
+    const input = document.getElementById('labelInput');
+    if (input) { input.focus(); input.select(); e.preventDefault(); }
+  } 
+  // Ctrl+I (also supports Cmd+I on macOS)
+  else if ((e.ctrlKey || e.metaKey) && key.toLowerCase() === 'i' && !isTyping) {
+    const editBtn = document.getElementById('sideEditBtn');
+    if (editBtn) { editBtn.click(); e.preventDefault(); e.stopPropagation(); }
   }
 });
-
   // --- 3) Safety guard: if zoom text glitches to NaN, refit the scene --------
   const badge = document.getElementById('scaleBadge');
   if(badge && /NaN/.test(badge.textContent||'')){
