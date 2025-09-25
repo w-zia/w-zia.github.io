@@ -1,0 +1,2015 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MindMap - Standalone</title>
+  <style>
+    :root{
+      --bg:#0b1020; --panel:#121a33; --ink:#e6ecff; --muted:#98a2b3;
+      --brand:#4f46e5; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444;
+      --stroke:#9aa7d8;
+    }
+
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family:system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      overflow-x:hidden;
+    }
+
+    .app{display:grid; grid-template-rows:auto 1fr; height:100%;}
+    .content{display:flex; gap:0; min-height:0;}
+
+    header{
+      display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+      padding:10px 12px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0));
+      position:sticky; top:0; z-index:10;
+    }
+    header .title{font-weight:700; letter-spacing:.2px; margin-right:8px; opacity:.9}
+
+    .btn{
+      appearance:none; border:none; background:var(--panel); color:var(--ink);
+      padding:8px 10px; border-radius:12px; cursor:pointer; font-weight:600
+    }
+    .btn:hover{filter:brightness(1.15)}
+    .btn:disabled{opacity:.5; cursor:not-allowed; filter:none}
+    .btn.active{ box-shadow:0 0 0 2px #f59e0b inset; }
+    .btn:active{transform:translateY(1px)}
+
+    .sep{width:1px; background:#24304f; align-self:stretch; margin:0 6px}
+    .status{font-size:12px; color:var(--muted)}
+
+    .canvas{
+      position:relative; overflow:hidden; flex:1; min-width:0;
+      background:
+        radial-gradient(1200px 800px at 20% -10%, #1a2447 0%, #0b1020 40%),
+        radial-gradient(1000px 800px at 120% 120%, #08142e 0, #0b1020 55%);
+    }
+
+    .sidebar{
+      width:340px; background:var(--panel); border-left:1px solid #263154;
+      padding:12px; overflow-y:auto; overflow-x:hidden;
+    }
+    .side-title{font-weight:700; margin-bottom:6px}
+    .side-muted{color:var(--muted); font-size:12px}
+    .side-kv{display:grid; grid-template-columns:88px 1fr; gap:6px; margin:6px 0}
+    .side-kv .k{color:var(--muted); font-size:12px}
+    .side-block{border-top:1px solid #263154; margin-top:10px; padding-top:10px}
+
+    /* Embedded inspector variant (when shown inside sidebar) */
+    .sidebar .inspector{
+      position:static; left:auto; top:auto; min-width:auto; width:100%;
+      max-width:100%; display:none; margin-top:8px; padding:8px;
+    }
+    .sidebar .inspector input,
+    .sidebar .inspector select,
+    .sidebar .inspector textarea{ max-width:100%; }
+    .sidebar .inspector .grid-2{ grid-template-columns:1fr; }
+    .sidebar .inspector .row{ margin-bottom:8px; }
+    .sidebar .inspector *{ box-sizing:border-box; max-width:100%; }
+
+    .hint{
+      position:absolute; bottom:10px; left:10px; font-size:12px; color:var(--muted);
+      background:rgba(255,255,255,0.06); padding:6px 8px; border-radius:10px;
+    }
+    .badge{
+      position:absolute; top:10px; right:10px; font-size:12px; color:var(--muted);
+      background:rgba(255,255,255,0.06); padding:6px 8px; border-radius:10px;
+    }
+
+    .inspector{
+      position:absolute; top:12px; left:12px; background:var(--panel);
+      border:1px solid #263154; padding:10px; border-radius:12px;
+      display:none; gap:8px; min-width:300px
+    }
+    .inspector label{font-size:12px; color:#cbd5e1}
+    .inspector input, .inspector select, .inspector textarea{
+      width:100%; background:var(--panel); border:1px solid #263154;
+      color:var(--ink); padding:6px 8px; border-radius:10px; box-sizing:border-box
+    }
+    .inspector .row{display:grid; gap:6px; margin-bottom:8px}
+    .inspector .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+    .inspector .actions{display:flex; gap:6px}
+    .inspector .title{font-weight:700; margin-bottom:4px}
+
+    .menu{position:relative}
+    .dropdown{
+      position:absolute; top:110%; left:0; background:var(--panel);
+      border:1px solid #263154; border-radius:12px; padding:8px; min-width:260px;
+      display:none; box-shadow:0 10px 30px rgba(0,0,0,.35)
+    }
+    .dropdown.open{display:block}
+    .item{
+      display:block; text-align:left; width:100%; background:transparent; border:none;
+      color:var(--ink); padding:8px; border-radius:10px; cursor:pointer
+    }
+    .item:hover{background:#1a2544}
+    .item small{display:block; color:var(--muted); font-size:12px; margin-top:4px}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">MindMap - Standalone</div>
+
+      <button class="btn" id="undoBtn" title="Undo last change (Ctrl/Cmd+Z)">Undo</button>
+      <button class="btn" id="redoBtn" title="Redo (Ctrl/Cmd+Y or Shift+Ctrl/Cmd+Z)">Redo</button>
+
+      <div class="sep"></div>
+
+      <button class="btn" id="copyBtn" title="Copy selection (Ctrl/Cmd+C)">Copy</button>
+      <button class="btn" id="pasteBtn" title="Paste (Ctrl/Cmd+V)">Paste</button>
+      <button class="btn" id="connectBtn" title="Make Connection (Alt+C)">Connect</button>
+      <button class="btn" id="addNodeBtn" title="Add node (Alt+N)">Add Node</button>
+      <button class="btn" id="reverseEdgeBtn" title="Reverse selected connection (Alt+R)" disabled>Reverse</button>
+      <button class="btn" id="deleteEdgeBtn" title="Delete selected connection (Del)" disabled>Delete Edge</button>
+
+      <div class="sep"></div>
+
+      <button class="btn" id="fitBtn" title="Fit to screen">Fit</button>
+
+      <div class="sep"></div>
+
+      <button class="btn" id="zoomInBtn" title="Zoom in">Zoom In</button>
+      <button class="btn" id="zoomOutBtn" title="Zoom out">Zoom Out</button>
+      <button class="btn" id="resetBtn" title="Reset view">Reset</button>
+      <button class="btn" id="expandAllBtn" title="Expand all nodes">Expand All</button>
+
+      <div class="sep"></div>
+
+      <!-- Export menu -->
+      <div class="menu">
+        <button class="btn" id="exportBtn" title="Export options">Export</button>
+        <div class="dropdown" id="exportMenu">
+          <button class="item" id="exportJsonItem">
+            JSON
+            <small>Save your map and load it back later.</small>
+          </button>
+          <button class="item" id="exportSvgItem">
+            SVG
+            <small>Vector image (sharp at any size).</small>
+          </button>
+          <button class="item" id="exportPngItem">
+            PNG
+            <small>Most common image format.</small>
+          </button>
+        </div>
+      </div>
+
+      <input type="file" id="loadInput" style="display:none" accept="application/json" />
+      <button class="btn" id="loadBtn" title="Load JSON">Load JSON</button>
+
+      <!-- Search controls -->
+      <div class="sep"></div>
+      <input
+        id="searchInput"
+        type="text"
+        placeholder="Search nodes..."
+        style="background:var(--panel); border:1px solid #263154; color:var(--ink); padding:8px 10px; border-radius:12px; min-width:220px"
+      />
+      <button class="btn" id="searchBtn" title="Search">Search</button>
+      <button class="btn" id="clearSearchBtn" title="Clear search">Clear</button>
+
+      <!-- Sub-type filter + tint control -->
+      <div class="sep"></div>
+      <button class="btn" id="subFilterBtn" title="Show only sub-roles/tasks">Sub-tasks</button>
+      <select
+        id="subTintSelect"
+        title="Sub-type tint"
+        style="background:var(--panel); border:1px solid #263154; color:var(--ink); padding:6px 8px; border-radius:10px;"
+      >
+        <option value="0.15">Tint 15%</option>
+        <option value="0.25" selected>Tint 25%</option>
+        <option value="0.35">Tint 35%</option>
+      </select>
+
+      <div class="sep"></div>
+      <span class="status" id="autosaveStatus">
+        Auto-save: <strong>On</strong> <span id="autosaveTick" aria-hidden="true"></span>
+      </span>
+    </header>
+
+    <div class="content">
+      <div class="canvas" id="canvas">
+        <div class="badge" id="scaleBadge"></div>
+
+        <div class="hint">
+          Default view: <strong>me</strong> + its direct children. Click a node to expand/collapse (Shift+Click collapses).
+          Search overrides this view; press “Clear” to return to expand/collapse mode.
+        </div>
+
+        <!-- Floating Inspector (can be embedded in sidebar when editing) -->
+        <div class="inspector" id="inspector">
+          <div class="title">Node</div>
+
+          <div class="row">
+            <label for="labelInput">Label</label>
+            <input id="labelInput" type="text" placeholder="Title" />
+          </div>
+
+          <div class="row">
+            <label for="categorySelect">Type</label>
+            <select id="categorySelect"></select>
+          </div>
+
+          <div class="row">
+            <label for="subTypeSelect">Sub-type</label>
+            <select id="subTypeSelect"></select>
+          </div>
+
+          <div class="row">
+            <label for="notesInput">Notes</label>
+            <textarea id="notesInput" rows="3" placeholder="Optional notes/summary" style="resize:vertical"></textarea>
+          </div>
+
+          <div class="row">
+            <div class="title" style="margin-top:2px">Dates & Title (optional)</div>
+            <div class="grid-2">
+              <div>
+                <label for="startInput">Start</label>
+                <input id="startInput" type="text" placeholder="e.g. 2021 or 2021-06" />
+              </div>
+              <div>
+                <label for="endInput">End</label>
+                <input id="endInput" type="text" placeholder="e.g. 2023 or Present" />
+              </div>
+            </div>
+            <label for="titleInput">Role/Title</label>
+            <input id="titleInput" type="text" placeholder="e.g. Technology Engineer" />
+          </div>
+
+          <div class="actions">
+            <button class="btn" id="addChildBtn">+ Child</button>
+            <button class="btn" id="deleteNodeBtn">Delete</button>
+          </div>
+
+          <!-- Edge inspector (shown when a connection is selected) -->
+          <div class="row" id="edgeInspector" style="display:none; border-top:1px solid #263154; padding-top:8px; margin-top:6px">
+            <div class="title">Connection</div>
+
+            <label for="edgeLabelInput">Label</label>
+            <input id="edgeLabelInput" type="text" placeholder="e.g., worked at, used skill" />
+
+            <label for="edgeTypeSelect" style="margin-top:6px;">Type</label>
+            <select id="edgeTypeSelect"></select>
+
+            <div class="row" style="margin-top:8px;">
+              <label style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="edgeLooseChk" /> Loose link (doesn't follow nodes)
+              </label>
+              <div class="actions" style="margin-top:6px;">
+                <button class="btn" id="edgeResetAnchorsBtn" title="Reposition anchors near nodes">Reset anchors</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SVG Scene -->
+        <svg id="svg" width="100%" height="100%" style="display:block;">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b8cff"/>
+            </marker>
+          </defs>
+          <g id="viewport"></g>
+        </svg>
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="sidebar" id="sidebar" style="display:none">
+        <div id="sideEmpty" class="side-muted">Select a node to see details.</div>
+
+        <!-- Node details -->
+        <div id="sideNode" style="display:none">
+          <div class="side-title" id="sideLabel">Node</div>
+          <div class="side-kv"><div class="k">Type</div><div id="sideType">—</div></div>
+          <div class="side-kv"><div class="k">Role/Title</div><div id="sideTitle">—</div></div>
+          <div class="side-kv"><div class="k">Dates</div><div id="sideDates">—</div></div>
+
+          <div class="side-block">
+            <div class="side-title" style="margin-bottom:4px">Notes</div>
+            <div id="sideNotes" class="side-muted">—</div>
+          </div>
+
+          <div class="side-block" style="display:flex; gap:8px">
+            <button class="btn" id="sideEditBtn">Edit Node</button>
+            <button class="btn" id="sideAddChildBtn">+ Child</button>
+          </div>
+
+          <div id="sideEditorMount"></div>
+        </div>
+
+        <!-- Edge details -->
+        <div id="sideEdge" style="display:none">
+          <div class="side-title">Connection</div>
+          <div class="side-kv"><div class="k">From</div><div id="sideFrom">—</div></div>
+          <div class="side-kv"><div class="k">To</div><div id="sideTo">—</div></div>
+          <div class="side-kv"><div class="k">Type</div><div id="sideEdgeType">—</div></div>
+          <div class="side-kv"><div class="k">Label</div><div id="sideEdgeLabel">—</div></div>
+
+          <div class="side-block" style="display:flex; gap:8px">
+            <button class="btn" id="sideEditEdgeBtn">Edit Connection</button>
+            <button class="btn" id="sideDeleteEdgeBtn">Delete</button>
+          </div>
+
+          <div id="sideEdgeEditorMount"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<!--
+  Scripts overview:
+  - Script 1: Core data, constants, sanitisation, basic drawing helpers and initial paint.
+  - Script 2: QoL patch — text fixes, quick edit keyboard shortcuts, small guards.
+  - Script 3: Main interaction layer — history/autosave, full drawing, selection/editing, pan/zoom, export, clipboard, search, and public API.
+  These comments are added to make the code easier to navigate; no runtime logic is modified.
+-->
+
+<!-- Core script: constants, helpers, initial data load, sanitize & draw helpers -->
+<script>
+/* Core: constants & helpers
+   - Defines categories, relations, subtypes, and small SVG helpers.
+   - Loads saved data (localStorage) or seeds defaults.
+   - Provides sanitisation and basic draw() implementation.
+   - Exposes a minimal window.__MindMap for later scripts.
+*/
+
+(function(){
+  // ====== Constants & helpers =================================================
+  const CATEGORIES = [
+    { id:'person',   name:'Person',    color:'#4f46e5' },
+    { id:'role',     name:'Role',      color:'#8b5cf6' },
+    { id:'company',  name:'Company',   color:'#06b6d4' },
+    { id:'skill',    name:'Skill',     color:'#22c55e' },
+    { id:'education',name:'Education', color:'#f59e0b' },
+    { id:'project',  name:'Project',   color:'#eab308' },
+    { id:'award',    name:'Award',     color:'#f97316' },
+    { id:'other',    name:'Other',     color:'#94a3b8' },
+  ];
+  function categoryColor(cat){ const f=CATEGORIES.find(c=>c.id===cat); return f?f.color:'#6b7280'; }
+  function categoryName(cat){ const f=CATEGORIES.find(c=>c.id===cat); return f?f.name:String(cat||'other'); }
+
+  const RELATIONS = [
+    { id:'worked_at',  name:'Worked at',  color:'#60a5fa', dash:'' },
+    { id:'used_skill', name:'Used skill', color:'#22c55e', dash:'6 6' },
+    { id:'studied_at', name:'Studied at', color:'#f59e0b', dash:'2 6' },
+    { id:'related',    name:'Related',    color:'#94a3b8', dash:'4 8' },
+    { id:'built',      name:'Built',      color:'#eab308', dash:'' },
+    { id:'worked_on',  name:'Worked on',  color:'#f59e0b', dash:'' }
+  ];
+  function relationStyle(id){ return RELATIONS.find(x=>x.id===id) || { color:'#6b8cff', dash:'' }; }
+
+  // Sub-types (used only for tinting/labels)
+  const SUBTYPES = {
+    role: [ { id:'', name:'None' }, { id:'sub_role', name:'Sub-role' }, { id:'task', name:'Task' }, { id:'department', name:'Departmental Function' } ],
+    project: [ { id:'', name:'None' }, { id:'workstream', name:'Workstream' }, { id:'deliverable', name:'Deliverable' } ],
+    company: [ { id:'', name:'None' }, { id:'team', name:'Team' } ],
+    skill: [ { id:'', name:'None' }, { id:'focus', name:'Focus Area' } ],
+    education: [ { id:'', name:'None' }, { id:'module', name:'Module' } ],
+    person: [ { id:'', name:'None' } ],
+    other: [ { id:'', name:'None' }, { id:'sub', name:'Sub-item' } ],
+  };
+
+  // SVG helpers
+  function docSvg(tag){ return document.createElementNS('http://www.w3.org/2000/svg', tag); }
+  function lightenHex(hex, amount){
+    try{
+      const a=Math.max(0,Math.min(1,amount||0));
+      const h=String(hex||'').replace('#','');
+      if(h.length!==6) return hex;
+      const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+      const lr=Math.round(r+(255-r)*a), lg=Math.round(g+(255-g)*a), lb=Math.round(b+(255-b)*a);
+      const toHex=v=>v.toString(16).padStart(2,'0');
+      return '#'+toHex(lr)+toHex(lg)+toHex(lb);
+    }catch{ return hex; }
+  }
+
+  // ====== DOM references ======================================================
+  const svg = document.getElementById('svg');
+  const viewport = document.getElementById('viewport');
+  const canvas = document.getElementById('canvas');
+  const inspector = document.getElementById('inspector');
+
+  const labelInput = document.getElementById('labelInput');
+  const categorySelect = document.getElementById('categorySelect');
+  const subTypeSelect = document.getElementById('subTypeSelect');
+  const notesInput = document.getElementById('notesInput');
+
+  const startInput = document.getElementById('startInput');
+  const endInput   = document.getElementById('endInput');
+  const titleInput = document.getElementById('titleInput');
+
+  const edgeInspector = document.getElementById('edgeInspector');
+  const edgeLabelInput = document.getElementById('edgeLabelInput');
+  const edgeTypeSelect = document.getElementById('edgeTypeSelect');
+  const edgeLooseChk = document.getElementById('edgeLooseChk');
+  const edgeResetAnchorsBtn = document.getElementById('edgeResetAnchorsBtn');
+
+  const sidebar = document.getElementById('sidebar');
+  const sideEmpty = document.getElementById('sideEmpty');
+  const sideNode = document.getElementById('sideNode');
+  const sideEdge = document.getElementById('sideEdge');
+
+  const sideLabel = document.getElementById('sideLabel');
+  const sideType = document.getElementById('sideType');
+  const sideTitle = document.getElementById('sideTitle');
+  const sideDates = document.getElementById('sideDates');
+  const sideNotes = document.getElementById('sideNotes');
+  const sideFrom = document.getElementById('sideFrom');
+  const sideTo = document.getElementById('sideTo');
+  const sideEdgeType = document.getElementById('sideEdgeType');
+  const sideEdgeLabel = document.getElementById('sideEdgeLabel');
+
+  const sideEditBtn = document.getElementById('sideEditBtn');
+  const sideAddChildBtn = document.getElementById('sideAddChildBtn');
+  const sideEditEdgeBtn = document.getElementById('sideEditEdgeBtn');
+  const sideDeleteEdgeBtn = document.getElementById('sideDeleteEdgeBtn');
+  const sideEditorMount = document.getElementById('sideEditorMount');
+  const sideEdgeEditorMount = document.getElementById('sideEdgeEditorMount');
+
+  const searchInput    = document.getElementById('searchInput');
+  const autosaveTick   = document.getElementById('autosaveTick');
+
+  // Populate category / relation dropdowns once
+  CATEGORIES.forEach(c=>{ const opt=document.createElement('option'); opt.value=c.id; opt.textContent=c.name; categorySelect.appendChild(opt); });
+  RELATIONS.forEach(r=>{ const opt=document.createElement('option'); opt.value=r.id; opt.textContent=r.name; edgeTypeSelect.appendChild(opt); });
+  function populateSubtypes(cat){
+    if(!subTypeSelect) return;
+    subTypeSelect.innerHTML='';
+    const list = SUBTYPES[cat] || SUBTYPES.other;
+    for(const it of list){
+      const opt=document.createElement('option');
+      opt.value=it.id; opt.textContent=it.name;
+      subTypeSelect.appendChild(opt);
+    }
+  }
+  populateSubtypes('other');
+
+  // ====== Data & state ========================================================
+  const STORAGE_KEY = 'mindmapCV';
+  let nodes = [];
+  let edges = [];
+
+  // Try load from localStorage; else seed some nodes
+  try{
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if(saved && Array.isArray(saved.nodes) && Array.isArray(saved.edges) && saved.nodes.length){
+      nodes = saved.nodes;
+      edges = saved.edges;
+    } else {
+      nodes = [
+        { id:"me",     label:"Waqaas Zia",        x:0,   y:0,    category:'person',  notes:'', start:'', end:'', title:'' },
+        { id:"skills", label:"Skills",            x:240, y:-120, category:'skill',   notes:'', start:'', end:'', title:'' },
+        { id:"exp",    label:"Experience",        x:240, y:  80, category:'role',    notes:'', start:'', end:'', title:'' },
+        { id:"ai",     label:"AI / Data",         x:480, y:-160, category:'skill',   notes:'', start:'', end:'', title:'' },
+        { id:"energy", label:"Energy / Net Zero", x:480, y:  10, category:'project', notes:'', start:'', end:'', title:'' },
+        { id:"kms",    label:"KMS",               x:480, y: 140, category:'project', notes:'', start:'', end:'', title:'' },
+      ];
+      edges = [
+        { id:"e1", from:"me", to:"skills",  type:'used_skill', label:'uses' },
+        { id:"e2", from:"me", to:"exp",     type:'worked_at',  label:'worked' },
+        { id:"e3", from:"skills", to:"ai",  type:'related',    label:'' },
+        { id:"e4", from:"exp", to:"energy", type:'worked_on',  label:'worked on' },
+        { id:"e5", from:"exp", to:"kms",    type:'worked_on',  label:'worked on' },
+      ];
+    }
+  }catch{}
+
+  // View state
+  let scale = 1;
+  let pan = { x: svg ? svg.clientWidth/2 : 0, y: svg ? svg.clientHeight/2 : 0 };
+  let selectedId = null;
+  let selectedEdgeId = null;
+  let connectMode = false;
+  let connectSource = null;
+  let previewLine = null;
+  let inspectorVisible = false;
+
+  // Filtering / visibility state
+  let searchOverrideActive = false;
+  let visibleIds = null;            // Set or null
+  let startupMode = true;           // Start with "me + children"
+  const expandedIds = new Set();    // For expand/collapse
+  let subFilterActive = false;
+  let subTintAmount = 0.25;
+
+  // Graph maps
+  const nodeById = new Map();
+  const childrenMap = new Map();
+  const parentsMap  = new Map();
+
+  // ====== Sanitisation & normalisation =======================================
+  function sanitizeData(){
+    const ensureStr = v => typeof v==='string' ? v : (v==null ? '' : String(v));
+    const validCats = new Set(CATEGORIES.map(c=>c.id));
+    const usedIds = new Set();
+    const remap = new Map();
+
+    function genId(prefix){ let id; do{ id=prefix+Math.random().toString(36).slice(2,8); }while(usedIds.has(id)); return id; }
+
+    // nodes
+    for(let i=0;i<nodes.length;i++){
+      const n = nodes[i] || {};
+      const origId = ensureStr(n.id);
+      let id = (origId && !usedIds.has(origId)) ? origId : genId('n');
+      if(id !== origId) remap.set(origId, id);
+      usedIds.add(id);
+      n.id = id;
+      n.label = ensureStr(n.label || n.name || id);
+      n.category = validCats.has(n.category) ? n.category : 'other';
+      const px = (n.position && (n.position.x ?? n.position[0])) ?? (n.pos && n.pos.x) ?? n.x;
+      const py = (n.position && (n.position.y ?? n.position[1])) ?? (n.pos && n.pos.y) ?? n.y;
+      n.x = Number(px); n.y = Number(py);
+      if(!isFinite(n.x)) n.x = 0;
+      if(!isFinite(n.y)) n.y = 0;
+      if(n.start===undefined) n.start='';
+      if(n.end===undefined) n.end='';
+      if(n.title===undefined) n.title='';
+      if(n.subtype===undefined) n.subtype='';
+      nodes[i] = n;
+    }
+
+    nodeById.clear();
+    nodes.forEach(n=>nodeById.set(n.id,n));
+
+    // edges
+    const usedE = new Set(edges.filter(Boolean).map(e=>String(e.id||'')).filter(Boolean));
+    for(let i=0;i<edges.length;i++){
+      const e = edges[i] || {};
+      let eid = String(e.id||'');
+      if(!eid || usedE.has(eid)) eid = genId('e');
+      usedE.add(eid);
+      e.id = eid;
+
+      const from0 = e.from ?? e.source ?? e.src;
+      const to0   = e.to   ?? e.target ?? e.dst;
+      e.from = ensureStr(remap.get(ensureStr(from0)) ?? from0);
+      e.to   = ensureStr(remap.get(ensureStr(to0))   ?? to0);
+      if(!e.type) e.type = 'related';
+      if(e.label===undefined) e.label = '';
+      edges[i] = e;
+    }
+
+    // prune disconnected edges
+    for(let i=edges.length-1;i>=0;i--){
+      const e = edges[i];
+      if(!nodeById.has(e.from) || !nodeById.has(e.to)) edges.splice(i,1);
+    }
+
+    // spread if all at 0,0
+    const allZero = nodes.every(n=>n.x===0 && n.y===0);
+    if(allZero){
+      const R=200, cx=0, cy=0, count=Math.max(nodes.length,1);
+      nodes.forEach((n,idx)=>{ const a=2*Math.PI*idx/count; n.x=cx+R*Math.cos(a); n.y=cy+R*Math.sin(a); });
+    }
+  }
+
+  function rebuildChildren(){
+    childrenMap.clear(); parentsMap.clear();
+    edges.forEach(e=>{
+      if(!childrenMap.has(e.from)) childrenMap.set(e.from, []);
+      childrenMap.get(e.from).push(e.to);
+      if(!parentsMap.has(e.to)) parentsMap.set(e.to, []);
+      parentsMap.get(e.to).push(e.from);
+    });
+    for(const id of Array.from(expandedIds)){
+      if(!nodeById.has(id)) expandedIds.delete(id);
+    }
+  }
+
+  function getChildren(id){ return childrenMap.get(id)||[]; }
+  function getParents(id){ return parentsMap.get(id)||[]; }
+
+  // ====== Visibility & search =================================================
+  function getFocusId(){ return nodeById.has('me') ? 'me' : (nodes[0]?.id ?? null); }
+  function initialVisible(){
+    const v=new Set();
+    const f=getFocusId();
+    if(!f) return v;
+    v.add(f);
+    for(const c of getChildren(f)) v.add(c);
+    return v;
+  }
+
+  function getRootIds(){
+    const roots=[];
+    for(const n of nodes){
+      if(!parentsMap.has(n.id) || (parentsMap.get(n.id)||[]).length===0) roots.push(n.id);
+    }
+    return roots;
+  }
+
+  function computeExpansionVisible(){
+    const visible = new Set(getRootIds());
+    let changed = true;
+    while(changed){
+      changed=false;
+      for(const id of expandedIds){
+        if(visible.has(id)){
+          for(const c of getChildren(id)){
+            if(!visible.has(c)){ visible.add(c); changed=true; }
+          }
+        }
+      }
+      for(const vid of Array.from(visible)){
+        for(const p of getParents(vid)){ if(!visible.has(p)){ visible.add(p); changed=true; } }
+      }
+    }
+    return visible;
+  }
+
+  function collectWithRelatives(rootId){
+    const ids = new Set([rootId]);
+    (function up(id){ for(const p of getParents(id)){ if(!ids.has(p)){ ids.add(p); up(p); } } })(rootId);
+    (function down(id){ for(const c of getChildren(id)){ if(!ids.has(c)){ ids.add(c); down(c); } } })(rootId);
+    return ids;
+  }
+
+  function findMatches(query){
+    const q=(query||'').trim().toLowerCase();
+    if(!q) return null;
+    const matches = nodes.filter(n=>{
+      const label=(n.label||'').toLowerCase();
+      const title=(n.title||'').toLowerCase();
+      const notes=(n.notes||'').toLowerCase();
+      const st=(n.subtype||'').toLowerCase();
+      return label.includes(q) || title.includes(q) || notes.includes(q) || st.includes(q);
+    }).map(n=>n.id);
+    if(matches.length===0) return new Set(); // show nothing if no hits
+    const union=new Set();
+    for(const id of matches) collectWithRelatives(id).forEach(x=>union.add(x));
+    return union;
+  }
+
+  function setVisible(idsSet){
+    visibleIds = idsSet;
+    searchOverrideActive = idsSet !== null;
+    if(searchOverrideActive && visibleIds && selectedId && !visibleIds.has(selectedId)){
+      selectedId = null;
+      if(inspector) inspector.style.display='none';
+    }
+    draw();
+    if(typeof fitToScreen==='function') fitToScreen();
+  }
+
+  // ====== Date parsing / display =============================================
+  function parseFlexibleDate(str){
+    if(!str) return null;
+    const s=String(str).trim().toLowerCase();
+    if(!s || s==='present' || s==='now' || s==='current') return 'PRESENT';
+    const mY = /^(\d{4})$/.exec(s);
+    const mYM = /^(\d{4})[-/](\d{1,2})$/.exec(s);
+    const mYMD = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/.exec(s);
+    if(mY){ const d=new Date(Number(mY[1]),0,1); return isNaN(d)?null:d; }
+    if(mYM){ const y=Number(mYM[1]), mo=Number(mYM[2])-1; const d=new Date(y,mo,1); return isNaN(d)?null:d; }
+    if(mYMD){ const y=Number(mYMD[1]), mo=Number(mYMD[2])-1, da=Number(mYMD[3]); const d=new Date(y,mo,da); return isNaN(d)?null:d; }
+    const d=new Date(str); return isNaN(d)?null:d;
+  }
+  function monthName(m){ return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m]; }
+  function detectGranularity(s){
+    if(!s) return null;
+    const t=String(s).trim();
+    if(/^\d{4}$/.test(t)) return 'year';
+    if(/^\d{4}[-/]\d{1,2}$/.test(t)) return 'month';
+    if(/^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(t)) return 'day';
+    return 'unknown';
+  }
+  function prettyDate(original){
+    if(!original) return '';
+    const g=detectGranularity(original);
+    const pd=parseFlexibleDate(original);
+    if(pd==='PRESENT') return 'Present';
+    if(!(pd instanceof Date)) return String(original);
+    if(g==='year') return String(pd.getFullYear());
+    if(g==='month' || g==='unknown') return `${monthName(pd.getMonth())} ${pd.getFullYear()}`;
+    if(g==='day') return `${pd.getDate()} ${monthName(pd.getMonth())} ${pd.getFullYear()}`;
+    return String(original);
+  }
+  function durationText(startStr, endStr){
+    const s=parseFlexibleDate(startStr);
+    let e=parseFlexibleDate(endStr);
+    const now=new Date();
+    if(!s) return '';
+    if(e==='PRESENT' || !e) e=now;
+    if(!(e instanceof Date) || e < s) return '';
+    let months=(e.getFullYear()-s.getFullYear())*12 + (e.getMonth()-s.getMonth());
+    if(e.getDate() < s.getDate()) months -= 1;
+    if(months < 0) return '';
+    const years=Math.floor(months/12), rem=months%12;
+    const yPart = years ? `${years}y` : '';
+    const mPart = rem ? `${rem}m` : (years ? '' : '0m');
+    return [yPart, mPart].filter(Boolean).join(' ');
+  }
+  function formatRange(start,end){
+    const s=(start||'').trim();
+    const e=(end||'').trim();
+    if(!s && !e) return '';
+    if(!s && e) return prettyDate(e);
+    if(s && !e) return `${prettyDate(s)} – Present`;
+    return `${prettyDate(s)} – ${prettyDate(e)}`;
+  }
+
+  // ====== Build relation maps now ============================================
+  sanitizeData();
+  nodeById.clear(); nodes.forEach(n=>nodeById.set(n.id,n));
+  rebuildChildren();
+
+  // ====== Drawing =============================================================
+  const rNode = 28;
+
+  function draw(){
+    if(!viewport) return;
+    viewport.innerHTML='';
+
+    // Decide visible set
+    if(searchOverrideActive){
+      // use visibleIds as set by search
+    } else if(startupMode){
+      visibleIds = initialVisible();
+    } else {
+      visibleIds = computeExpansionVisible();
+    }
+
+    // Draw edges
+    for(const e of edges){
+      const a=nodeById.get(e.from), b=nodeById.get(e.to);
+      if(!a || !b) continue;
+      if(visibleIds && (!visibleIds.has(a.id) || !visibleIds.has(b.id))) continue;
+
+      const x1=a.x, y1=a.y, x2=b.x, y2=b.y;
+      const style=relationStyle(e.type);
+
+      const line=docSvg('line');
+      line.setAttribute('x1',x1); line.setAttribute('y1',y1);
+      line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+      const isSel = (selectedEdgeId===e.id);
+      line.setAttribute('stroke', isSel ? '#f59e0b' : style.color);
+      line.setAttribute('stroke-width', isSel ? '3' : '2');
+      if(style.dash) line.setAttribute('stroke-dasharray',style.dash); else line.removeAttribute('stroke-dasharray');
+      line.setAttribute('marker-end','url(#arrow)');
+      line.setAttribute('vector-effect','non-scaling-stroke');
+      line.setAttribute('stroke-linecap','round');
+      line.setAttribute('pointer-events','stroke');
+      line.style.cursor='pointer';
+      // Selection handler wired in Part 4
+      viewport.appendChild(line);
+
+      // Edge label (only if user added one)
+      if(e.label && e.label.trim()){
+        const mx=(x1+x2)/2, my=(y1+y2)/2;
+        const t=docSvg('text');
+        t.setAttribute('x',mx);
+        t.setAttribute('y',my-6);
+        t.setAttribute('text-anchor','middle');
+        t.setAttribute('font-size','12');
+        t.setAttribute('fill','#dbeafe');
+        t.textContent=e.label.trim();
+        viewport.appendChild(t);
+      }
+    }
+
+    // Draw nodes
+    for(const n of nodes){
+      if(visibleIds && !visibleIds.has(n.id)) continue;
+
+      const g=docSvg('g');
+      g.setAttribute('data-id', n.id);
+      g.style.cursor='grab';
+
+      const circle=docSvg('circle');
+      circle.setAttribute('cx',n.x);
+      circle.setAttribute('cy',n.y);
+      circle.setAttribute('r',rNode);
+      const baseCol = categoryColor(n.category);
+      const fillCol = (n.subtype && String(n.subtype).trim()) ? lightenHex(baseCol, subTintAmount) : baseCol;
+      circle.setAttribute('fill', fillCol);
+      circle.setAttribute('stroke', selectedId===n.id ? '#ffffff' : 'rgba(255,255,255,0.7)');
+      circle.setAttribute('stroke-width', selectedId===n.id ? '3' : '2');
+
+      const label=docSvg('text');
+      label.setAttribute('x',n.x);
+      label.setAttribute('y',n.y + rNode + 16);
+      label.setAttribute('text-anchor','middle');
+      label.setAttribute('font-size','12');
+      label.setAttribute('fill','#dbeafe');
+      label.textContent = n.label;
+
+      // sublabel: title + date range (+ duration if start exists)
+      const sub=docSvg('text');
+      sub.setAttribute('x',n.x);
+      sub.setAttribute('y',n.y + rNode + 30);
+      sub.setAttribute('text-anchor','middle');
+      sub.setAttribute('font-size','11');
+      sub.setAttribute('fill','#a3b6ff');
+
+      const range = formatRange(n.start, n.end);
+      const dur = durationText(n.start, n.end);
+      const parts=[];
+      if(n.title && n.title.trim()) parts.push(n.title.trim());
+      if(range){
+        const showDur = !!(n.start && n.start.trim());
+        parts.push(showDur && dur ? `${range} (${dur})` : range);
+      }
+      const subText = parts.join(' • ');
+      if(subText) sub.textContent = subText;
+
+      g.appendChild(circle);
+      g.appendChild(label);
+      if(subText) g.appendChild(sub);
+
+      // Event handlers wired in Part 4 (drag, select, expand/collapse, connect)
+      viewport.appendChild(g);
+    }
+
+    updateTransform();
+  }
+
+  function updateTransform(){
+    if(!viewport) return;
+    viewport.setAttribute('transform', `translate(${pan.x},${pan.y}) scale(${scale})`);
+    const badge = document.getElementById('scaleBadge');
+    if(badge){
+      const z = `Zoom: ${(scale*100).toFixed(0)}%`;
+      const mode = searchOverrideActive ? ' · Search' : (startupMode ? ' · Focused' : ' · Expand view');
+      const f = visibleIds ? ` · Showing: ${visibleIds.size} node${visibleIds.size!==1?'s':''}` : '';
+      badge.textContent = z + mode + f;
+    }
+  }
+
+  // Expose minimal functions for later parts
+  window.__MindMap = {
+    state(){ return { nodes, edges, selectedId, selectedEdgeId, scale, pan, visibleIds, searchOverrideActive, startupMode, expandedIds, subFilterActive, subTintAmount }; },
+    setVisible,
+    draw,
+    sanitizeData,
+    rebuildChildren,
+    helpers: { categoryName, relationStyle, prettyDate, durationText, formatRange }
+  };
+
+  // Initial paint (fitToScreen comes in Part 4)
+  draw();
+})();
+
+</script>
+
+<!-- QoL patch: fixes and small keybindings -->
+<script>
+/* QoL patch (Part 5/5)
+   - Cleans mojibake artifacts from saved data.
+   - Adds quick keyboard shortcuts (F2, I) and a small safety guard for the zoom badge.
+   - Runs without changing core behaviour; purely cosmetic/UX.
+*/
+(function(){
+  const MM = window.__MindMap;
+  if(!MM) return;
+
+  // --- 1) Fix common mojibake artifacts in existing/saved data ---------------
+  function fixStr(s){
+    if(!s || typeof s!=='string') return s;
+    return s
+      .replace(/â€¦/g,'…')
+      .replace(/â€”/g,'—')
+      .replace(/â€“/g,'–')
+      .replace(/â€˜/g,'‘').replace(/â€™/g,'’')
+      .replace(/â€œ/g,'“').replace(/â€/g,'”')
+      .replace(/Â·/g,'·')
+      .replace(/Â/g,'');
+
+  }
+
+  const st = MM.state && MM.state();
+  let changed=false;
+  if(st){
+    // Clean nodes
+    (MM.nodes||[]).forEach(n=>{
+      ['label','notes','title','start','end','subtype'].forEach(k=>{
+        const v=n[k]; const v2=fixStr(v);
+        if(v!==v2){ n[k]=v2; changed=true; }
+      });
+    });
+    // Clean edges
+    (MM.edges||[]).forEach(e=>{
+      ['label','type','from','to'].forEach(k=>{
+        const v=e[k]; const v2=fixStr(v);
+        if(v!==v2){ e[k]=v2; changed=true; }
+      });
+    });
+  }
+  if(changed){
+    try{ localStorage.setItem('mindmapCV', JSON.stringify({nodes:MM.nodes, edges:MM.edges})); }catch(e){}
+    MM.draw();
+  }
+
+  // --- 2) Quick edit shortcuts ----------------------------------------------
+  // F2: focus the label input (opens editor if needed)
+  // I: toggle inspector open/close for the selected node
+  document.addEventListener('keydown', (e)=>{
+    const key = e.key || '';
+    if(key === 'F2'){
+      if(!MM.selectedId) return;
+      const sidebar = document.getElementById('sidebar');
+      if(sidebar && sidebar.style.display!=='block'){ sidebar.style.display='block'; }
+      const editBtn = document.getElementById('sideEditBtn');
+      const insp = document.getElementById('inspector');
+      if(insp && getComputedStyle(insp).display==='none' && editBtn){ editBtn.click(); }
+      const input = document.getElementById('labelInput');
+      if(input){ input.focus(); input.select(); e.preventDefault(); }
+    } else if(key.toLowerCase() === 'i'){
+      const editBtn = document.getElementById('sideEditBtn');
+      if(editBtn){ editBtn.click(); e.preventDefault(); }
+    }
+  });
+
+  // --- 3) Safety guard: if zoom text glitches to NaN, refit the scene --------
+  const badge = document.getElementById('scaleBadge');
+  if(badge && /NaN/.test(badge.textContent||'')){
+    if(typeof MM.fitToScreen === 'function') MM.fitToScreen();
+  }
+})();
+</script>
+
+<!-- Interaction layer: full UI, events, history, export, pan/zoom, selection -->
+<script>
+/* Main Interaction Layer
+   - History and autosave management (undo/redo, snapshotting).
+   - Full draw() implementation with hit areas, node/edge rendering and interactions.
+   - Selection, sidebar syncing, editing handlers, and node dragging.
+   - Loose anchors for curved edges, pan & zoom controls, fitToScreen and export logic.
+   - Clipboard copy/paste, connection creation, delete/reverse edge utilities, and search controls.
+   - Exposes comprehensive window.__MindMap public API for extensions.
+*/
+(function(){
+  // ====== Constants & helpers =================================================
+  const CATEGORIES = [
+    { id:'person',   name:'Person',    color:'#4f46e5' },
+    { id:'role',     name:'Role',      color:'#8b5cf6' },
+    { id:'company',  name:'Company',   color:'#06b6d4' },
+    { id:'skill',    name:'Skill',     color:'#22c55e' },
+    { id:'education',name:'Education', color:'#f59e0b' },
+    { id:'project',  name:'Project',   color:'#eab308' },
+    { id:'award',    name:'Award',     color:'#f97316' },
+    { id:'other',    name:'Other',     color:'#94a3b8' },
+  ];
+  function categoryColor(cat){ const f=CATEGORIES.find(c=>c.id===cat); return f?f.color:'#6b7280'; }
+  function categoryName(cat){ const f=CATEGORIES.find(c=>c.id===cat); return f?f.name:String(cat||'other'); }
+
+  const RELATIONS = [
+    { id:'worked_at',  name:'Worked at',  color:'#60a5fa', dash:'' },
+    { id:'used_skill', name:'Used skill', color:'#22c55e', dash:'6 6' },
+    { id:'studied_at', name:'Studied at', color:'#f59e0b', dash:'2 6' },
+    { id:'related',    name:'Related',    color:'#94a3b8', dash:'4 8' },
+    { id:'built',      name:'Built',      color:'#eab308', dash:'' },
+    { id:'worked_on',  name:'Worked on',  color:'#f59e0b', dash:'' }
+  ];
+  function relationStyle(id){ return RELATIONS.find(x=>x.id===id) || { color:'#6b8cff', dash:'' }; }
+
+  const SUBTYPES = {
+    role: [ { id:'', name:'None' }, { id:'sub_role', name:'Sub-role' }, { id:'task', name:'Task' }, { id:'department', name:'Departmental Function' } ],
+    project: [ { id:'', name:'None' }, { id:'workstream', name:'Workstream' }, { id:'deliverable', name:'Deliverable' } ],
+    company: [ { id:'', name:'None' }, { id:'team', name:'Team' } ],
+    skill: [ { id:'', name:'None' }, { id:'focus', name:'Focus Area' } ],
+    education: [ { id:'', name:'None' }, { id:'module', name:'Module' } ],
+    person: [ { id:'', name:'None' } ],
+    other: [ { id:'', name:'None' }, { id:'sub', name:'Sub-item' } ],
+  };
+
+  function docSvg(tag){ return document.createElementNS('http://www.w3.org/2000/svg', tag); }
+  function lightenHex(hex, amount){
+    try{
+      const a=Math.max(0,Math.min(1,amount||0));
+      const h=String(hex||'').replace('#','');
+      if(h.length!==6) return hex;
+      const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+      const lr=Math.round(r+(255-r)*a), lg=Math.round(g+(255-g)*a), lb=Math.round(b+(255-b)*a);
+      const toHex=v=>v.toString(16).padStart(2,'0');
+      return '#'+toHex(lr)+toHex(lg)+toHex(lb);
+    }catch{ return hex; }
+  }
+  const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+
+  // ====== DOM references ======================================================
+  const svg = document.getElementById('svg');
+  const viewport = document.getElementById('viewport');
+  const canvas = document.getElementById('canvas');
+  const inspector = document.getElementById('inspector');
+
+  const labelInput = document.getElementById('labelInput');
+  const categorySelect = document.getElementById('categorySelect');
+  const subTypeSelect = document.getElementById('subTypeSelect');
+  const notesInput = document.getElementById('notesInput');
+
+  const startInput = document.getElementById('startInput');
+  const endInput   = document.getElementById('endInput');
+  const titleInput = document.getElementById('titleInput');
+
+  const edgeInspector = document.getElementById('edgeInspector');
+  const edgeLabelInput = document.getElementById('edgeLabelInput');
+  const edgeTypeSelect = document.getElementById('edgeTypeSelect');
+  const edgeLooseChk = document.getElementById('edgeLooseChk');
+  const edgeResetAnchorsBtn = document.getElementById('edgeResetAnchorsBtn');
+
+  const sidebar = document.getElementById('sidebar');
+  const sideEmpty = document.getElementById('sideEmpty');
+  const sideNode = document.getElementById('sideNode');
+  const sideEdge = document.getElementById('sideEdge');
+
+  const sideLabel = document.getElementById('sideLabel');
+  const sideType = document.getElementById('sideType');
+  const sideTitle = document.getElementById('sideTitle');
+  const sideDates = document.getElementById('sideDates');
+  const sideNotes = document.getElementById('sideNotes');
+  const sideFrom = document.getElementById('sideFrom');
+  const sideTo = document.getElementById('sideTo');
+  const sideEdgeType = document.getElementById('sideEdgeType');
+  const sideEdgeLabel = document.getElementById('sideEdgeLabel');
+
+  const sideEditBtn = document.getElementById('sideEditBtn');
+  const sideAddChildBtn = document.getElementById('sideAddChildBtn');
+  const sideEditEdgeBtn = document.getElementById('sideEditEdgeBtn');
+  const sideDeleteEdgeBtn = document.getElementById('sideDeleteEdgeBtn');
+  const sideEditorMount = document.getElementById('sideEditorMount');
+  const sideEdgeEditorMount = document.getElementById('sideEdgeEditorMount');
+
+  const undoBtn=document.getElementById('undoBtn');
+  const redoBtn=document.getElementById('redoBtn');
+  const copyBtn=document.getElementById('copyBtn');
+  const pasteBtn=document.getElementById('pasteBtn');
+  const connectBtn=document.getElementById('connectBtn');
+  const addNodeBtn=document.getElementById('addNodeBtn');
+  const reverseEdgeBtn=document.getElementById('reverseEdgeBtn');
+  const deleteEdgeBtn=document.getElementById('deleteEdgeBtn');
+  const zoomInBtn=document.getElementById('zoomInBtn');
+  const zoomOutBtn=document.getElementById('zoomOutBtn');
+  const resetBtn=document.getElementById('resetBtn');
+  const fitBtn=document.getElementById('fitBtn');
+  const expandAllBtn=document.getElementById('expandAllBtn');
+  const exportBtn=document.getElementById('exportBtn');
+  const exportMenu=document.getElementById('exportMenu');
+  const exportJsonItem=document.getElementById('exportJsonItem');
+  const exportSvgItem=document.getElementById('exportSvgItem');
+  const exportPngItem=document.getElementById('exportPngItem');
+  const loadBtn=document.getElementById('loadBtn');
+  const loadInput=document.getElementById('loadInput');
+
+  const searchInput    = document.getElementById('searchInput');
+  const searchBtn      = document.getElementById('searchBtn');
+  const clearSearchBtn = document.getElementById('clearSearchBtn');
+  const subFilterBtn   = document.getElementById('subFilterBtn');
+  const subTintSelect  = document.getElementById('subTintSelect');
+  const autosaveTick   = document.getElementById('autosaveTick');
+
+  // ====== Data & state ========================================================
+  const STORAGE_KEY = 'mindmapCV';
+  let nodes = [];
+  let edges = [];
+
+  // Try load from localStorage; else seed some nodes
+  try{
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if(saved && Array.isArray(saved.nodes) && Array.isArray(saved.edges) && saved.nodes.length){
+      nodes = saved.nodes;
+      edges = saved.edges;
+    } else {
+      nodes = [
+        { id:"me",     label:"Waqaas Zia",        x:0,   y:0,    category:'person',  notes:'', start:'', end:'', title:'' },
+        { id:"skills", label:"Skills",            x:240, y:-120, category:'skill',   notes:'', start:'', end:'', title:'' },
+        { id:"exp",    label:"Experience",        x:240, y:  80, category:'role',    notes:'', start:'', end:'', title:'' },
+        { id:"ai",     label:"AI / Data",         x:480, y:-160, category:'skill',   notes:'', start:'', end:'', title:'' },
+        { id:"energy", label:"Energy / Net Zero", x:480, y:  10, category:'project', notes:'', start:'', end:'', title:'' },
+        { id:"kms",    label:"KMS",               x:480, y: 140, category:'project', notes:'', start:'', end:'', title:'' },
+      ];
+      edges = [
+        { id:"e1", from:"me", to:"skills",  type:'used_skill', label:'uses' },
+        { id:"e2", from:"me", to:"exp",     type:'worked_at',  label:'worked' },
+        { id:"e3", from:"skills", to:"ai",  type:'related',    label:'' },
+        { id:"e4", from:"exp", to:"energy", type:'worked_on',  label:'worked on' },
+        { id:"e5", from:"exp", to:"kms",    type:'worked_on',  label:'worked on' },
+      ];
+    }
+  }catch{}
+
+  // View state
+  let scale = 1;
+  let pan = { x: svg ? svg.clientWidth/2 : 0, y: svg ? svg.clientHeight/2 : 0 };
+  let selectedId = null;
+  let selectedEdgeId = null;
+  let connectMode = false;
+  let connectSource = null;
+  let previewLine = null;
+  let inspectorVisible = false;
+
+  // Filtering / visibility state
+  let searchOverrideActive = false;
+  let visibleIds = null;            // Set or null
+  let startupMode = true;           // Start with "me + children"
+  const expandedIds = new Set();    // For expand/collapse
+  let subFilterActive = false;
+  let subTintAmount = 0.25;
+
+  // Graph maps
+  const nodeById = new Map();
+  const childrenMap = new Map();
+  const parentsMap  = new Map();
+
+  // ====== Sanitisation & normalisation =======================================
+  function sanitizeData(){
+    const ensureStr = v => typeof v==='string' ? v : (v==null ? '' : String(v));
+    const validCats = new Set(CATEGORIES.map(c=>c.id));
+    const usedIds = new Set();
+    const remap = new Map();
+
+    function genId(prefix){ let id; do{ id=prefix+Math.random().toString(36).slice(2,8); }while(usedIds.has(id)); return id; }
+
+    // nodes
+    for(let i=0;i<nodes.length;i++){
+      const n = nodes[i] || {};
+      const origId = ensureStr(n.id);
+      let id = (origId && !usedIds.has(origId)) ? origId : genId('n');
+      if(id !== origId) remap.set(origId, id);
+      usedIds.add(id);
+      n.id = id;
+      n.label = ensureStr(n.label || n.name || id);
+      n.category = validCats.has(n.category) ? n.category : 'other';
+      const px = (n.position && (n.position.x ?? n.position[0])) ?? (n.pos && n.pos.x) ?? n.x;
+      const py = (n.position && (n.position.y ?? n.position[1])) ?? (n.pos && n.pos.y) ?? n.y;
+      n.x = Number(px); n.y = Number(py);
+      if(!isFinite(n.x)) n.x = 0;
+      if(!isFinite(n.y)) n.y = 0;
+      if(n.start===undefined) n.start='';
+      if(n.end===undefined) n.end='';
+      if(n.title===undefined) n.title='';
+      if(n.subtype===undefined) n.subtype='';
+      nodes[i] = n;
+    }
+
+    nodeById.clear();
+    nodes.forEach(n=>nodeById.set(n.id,n));
+
+    // edges
+    const usedE = new Set(edges.filter(Boolean).map(e=>String(e.id||'')).filter(Boolean));
+    for(let i=0;i<edges.length;i++){
+      const e = edges[i] || {};
+      let eid = String(e.id||'');
+      if(!eid || usedE.has(eid)) eid = genId('e');
+      usedE.add(eid);
+      e.id = eid;
+
+      const from0 = e.from ?? e.source ?? e.src;
+      const to0   = e.to   ?? e.target ?? e.dst;
+      e.from = ensureStr(remap.get(ensureStr(from0)) ?? from0);
+      e.to   = ensureStr(remap.get(ensureStr(to0))   ?? to0);
+      if(!e.type) e.type = 'related';
+      if(e.label===undefined) e.label = '';
+      edges[i] = e;
+    }
+
+    // prune disconnected edges
+    for(let i=edges.length-1;i>=0;i--){
+      const e = edges[i];
+      if(!nodeById.has(e.from) || !nodeById.has(e.to)) edges.splice(i,1);
+    }
+
+    // spread if all at 0,0
+    const allZero = nodes.every(n=>n.x===0 && n.y===0);
+    if(allZero){
+      const R=200, cx=0, cy=0, count=Math.max(nodes.length,1);
+      nodes.forEach((n,idx)=>{ const a=2*Math.PI*idx/count; n.x=cx+R*Math.cos(a); n.y=cy+R*Math.sin(a); });
+    }
+  }
+
+  function rebuildChildren(){
+    childrenMap.clear(); parentsMap.clear();
+    edges.forEach(e=>{
+      if(!childrenMap.has(e.from)) childrenMap.set(e.from, []);
+      childrenMap.get(e.from).push(e.to);
+      if(!parentsMap.has(e.to)) parentsMap.set(e.to, []);
+      parentsMap.get(e.to).push(e.from);
+    });
+    for(const id of Array.from(expandedIds)){
+      if(!nodeById.has(id)) expandedIds.delete(id);
+    }
+  }
+
+  function getChildren(id){ return childrenMap.get(id)||[]; }
+  function getParents(id){ return parentsMap.get(id)||[]; }
+
+  // ====== Visibility & search =================================================
+  function getFocusId(){ return nodeById.has('me') ? 'me' : (nodes[0]?.id ?? null); }
+  function initialVisible(){
+    const v=new Set();
+    const f=getFocusId();
+    if(!f) return v;
+    v.add(f);
+    for(const c of getChildren(f)) v.add(c);
+    return v;
+  }
+
+  function getRootIds(){
+    const roots=[];
+    for(const n of nodes){
+      if(!parentsMap.has(n.id) || (parentsMap.get(n.id)||[]).length===0) roots.push(n.id);
+    }
+    return roots;
+  }
+
+  function computeExpansionVisible(){
+    const visible = new Set(getRootIds());
+    let changed = true;
+    while(changed){
+      changed=false;
+      for(const id of expandedIds){
+        if(visible.has(id)){
+          for(const c of getChildren(id)){
+            if(!visible.has(c)){ visible.add(c); changed=true; }
+          }
+        }
+      }
+      for(const vid of Array.from(visible)){
+        for(const p of getParents(vid)){ if(!visible.has(p)){ visible.add(p); changed=true; } }
+      }
+    }
+    return visible;
+  }
+
+  function collectWithRelatives(rootId){
+    const ids = new Set([rootId]);
+    (function up(id){ for(const p of getParents(id)){ if(!ids.has(p)){ ids.add(p); up(p); } } })(rootId);
+    (function down(id){ for(const c of getChildren(id)){ if(!ids.has(c)){ ids.add(c); down(c); } } })(rootId);
+    return ids;
+  }
+
+  function findMatches(query){
+    const q=(query||'').trim().toLowerCase();
+    if(!q) return null;
+    const matches = nodes.filter(n=>{
+      const label=(n.label||'').toLowerCase();
+      const title=(n.title||'').toLowerCase();
+      const notes=(n.notes||'').toLowerCase();
+      const st=(n.subtype||'').toLowerCase();
+      return label.includes(q) || title.includes(q) || notes.includes(q) || st.includes(q);
+    }).map(n=>n.id);
+    if(matches.length===0) return new Set(); // show nothing if no hits
+    const union=new Set();
+    for(const id of matches) collectWithRelatives(id).forEach(x=>union.add(x));
+    return union;
+  }
+
+  function setVisible(idsSet){
+    visibleIds = idsSet;
+    searchOverrideActive = idsSet !== null;
+    if(searchOverrideActive && visibleIds && selectedId && !visibleIds.has(selectedId)){
+      selectedId = null;
+      if(inspector) inspector.style.display='none';
+    }
+    draw();
+    fitToScreen();
+  }
+
+  // ====== Date parsing / display =============================================
+  function parseFlexibleDate(str){
+    if(!str) return null;
+    const s=String(str).trim().toLowerCase();
+    if(!s || s==='present' || s==='now' || s==='current') return 'PRESENT';
+    const mY = /^(\d{4})$/.exec(s);
+    const mYM = /^(\d{4})[-/](\d{1,2})$/.exec(s);
+    const mYMD = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/.exec(s);
+    if(mY){ const d=new Date(Number(mY[1]),0,1); return isNaN(d)?null:d; }
+    if(mYM){ const y=Number(mYM[1]), mo=Number(mYM[2])-1; const d=new Date(y,mo,1); return isNaN(d)?null:d; }
+    if(mYMD){ const y=Number(mYMD[1]), mo=Number(mYMD[2])-1, da=Number(mYMD[3]); const d=new Date(y,mo,da); return isNaN(d)?null:d; }
+    const d=new Date(str); return isNaN(d)?null:d;
+  }
+  function monthName(m){ return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m]; }
+  function detectGranularity(s){
+    if(!s) return null;
+    const t=String(s).trim();
+    if(/^\d{4}$/.test(t)) return 'year';
+    if(/^\d{4}[-/]\d{1,2}$/.test(t)) return 'month';
+    if(/^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(t)) return 'day';
+    return 'unknown';
+  }
+  function prettyDate(original){
+    if(!original) return '';
+    const g=detectGranularity(original);
+    const pd=parseFlexibleDate(original);
+    if(pd==='PRESENT') return 'Present';
+    if(!(pd instanceof Date)) return String(original);
+    if(g==='year') return String(pd.getFullYear());
+    if(g==='month' || g==='unknown') return `${monthName(pd.getMonth())} ${pd.getFullYear()}`;
+    if(g==='day') return `${pd.getDate()} ${monthName(pd.getMonth())} ${pd.getFullYear()}`;
+    return String(original);
+  }
+  function durationText(startStr, endStr){
+    const s=parseFlexibleDate(startStr);
+    let e=parseFlexibleDate(endStr);
+    const now=new Date();
+    if(!s) return '';
+    if(e==='PRESENT' || !e) e=now;
+    if(!(e instanceof Date) || e < s) return '';
+    let months=(e.getFullYear()-s.getFullYear())*12 + (e.getMonth()-s.getMonth());
+    if(e.getDate() < s.getDate()) months -= 1;
+    if(months < 0) return '';
+    const years=Math.floor(months/12), rem=months%12;
+    const yPart = years ? `${years}y` : '';
+    const mPart = rem ? `${rem}m` : (years ? '' : '0m');
+    return [yPart, mPart].filter(Boolean).join(' ');
+  }
+  function formatRange(start,end){
+    const s=(start||'').trim();
+    const e=(end||'').trim();
+    if(!s && !e) return '';
+    if(!s && e) return prettyDate(e);
+    if(s && !e) return `${prettyDate(s)} – Present`;
+    return `${prettyDate(s)} – ${prettyDate(e)}`;
+  }
+
+  // ====== History / autosave ==================================================
+  const HISTORY_LIMIT = 160;
+  const history = [];
+  let histIndex = -1;
+  const snapshot = ()=> JSON.parse(JSON.stringify({nodes,edges}));
+  function recordHistory(){
+    const snap=snapshot();
+    const last=history[histIndex];
+    if(last && JSON.stringify(last)===JSON.stringify(snap)) return;
+    history.splice(histIndex+1);
+    history.push(snap);
+    if(history.length>HISTORY_LIMIT) history.shift();
+    histIndex=history.length-1;
+  }
+  function applyState(s){
+    nodes = JSON.parse(JSON.stringify(s.nodes||[]));
+    edges = JSON.parse(JSON.stringify(s.edges||[]));
+    sanitizeData();
+    rebuildChildren();
+    selectedId=null; selectedEdgeId=null;
+    expandedIds.clear();
+    visibleIds = new Set(nodes.map(n=>n.id));
+    searchOverrideActive = true;
+    startupMode = false;
+    draw(); fitToScreen(); scheduleAutosave();
+  }
+  function undo(){ if(histIndex<=0) return; histIndex--; applyState(history[histIndex]); }
+  function redo(){ if(histIndex>=history.length-1) return; histIndex++; applyState(history[histIndex]); }
+
+  let autosaveTimer=null;
+  function scheduleAutosave(){
+    if(autosaveTimer) clearTimeout(autosaveTimer);
+    autosaveTimer=setTimeout(()=>{
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({nodes,edges}));
+        if(autosaveTick){
+          autosaveTick.textContent='•';
+          autosaveTick.style.opacity='1';
+          setTimeout(()=>{ autosaveTick.style.opacity='0'; }, 500);
+        }
+      }catch{}
+    },300);
+  }
+
+  // ====== Build relation maps now ============================================
+  sanitizeData(); rebuildChildren();
+
+  // ====== Drawing =============================================================
+  const rNode = 28;
+
+  function draw(){
+    viewport.innerHTML='';
+
+    // visibility
+    if(searchOverrideActive){
+      // use visibleIds as set by search
+    } else if(startupMode){
+      visibleIds = initialVisible();
+    } else {
+      visibleIds = computeExpansionVisible();
+    }
+
+    // edges
+    for(const e of edges){
+      const a=nodeById.get(e.from), b=nodeById.get(e.to);
+      if(!a || !b) continue;
+      if(visibleIds && (!visibleIds.has(a.id) || !visibleIds.has(b.id))) continue;
+
+      const x1=a.x, y1=a.y, x2=b.x, y2=b.y;
+      const style=relationStyle(e.type);
+
+      const line=docSvg('line');
+      line.setAttribute('x1',x1); line.setAttribute('y1',y1);
+      line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+      const isSel = (selectedEdgeId===e.id);
+      line.setAttribute('stroke', isSel ? '#f59e0b' : style.color);
+      line.setAttribute('stroke-width', isSel ? '3' : '2');
+      if(style.dash) line.setAttribute('stroke-dasharray',style.dash); else line.removeAttribute('stroke-dasharray');
+      line.setAttribute('marker-end','url(#arrow)');
+      line.setAttribute('vector-effect','non-scaling-stroke');
+      line.setAttribute('stroke-linecap','round');
+      line.setAttribute('pointer-events','stroke');
+      line.style.cursor='pointer';
+      line.addEventListener('pointerdown', ev=>{ ev.stopPropagation(); selectEdge(e.id); });
+      viewport.appendChild(line);
+
+      // hit line for easier selection
+      const hit=docSvg('line');
+      hit.setAttribute('x1',x1); hit.setAttribute('y1',y1);
+      hit.setAttribute('x2',x2); hit.setAttribute('y2',y2);
+      hit.setAttribute('stroke','#000'); hit.setAttribute('stroke-opacity','0.001');
+      hit.setAttribute('stroke-width','8'); hit.setAttribute('vector-effect','non-scaling-stroke');
+      hit.setAttribute('pointer-events','stroke');
+      hit.style.cursor='pointer';
+      hit.addEventListener('pointerdown', ev=>{ ev.stopPropagation(); selectEdge(e.id); });
+      viewport.appendChild(hit);
+
+      if(e.label && e.label.trim()){
+        const mx=(x1+x2)/2, my=(y1+y2)/2;
+        const t=docSvg('text');
+        t.setAttribute('x',mx);
+        t.setAttribute('y',my-6);
+        t.setAttribute('text-anchor','middle');
+        t.setAttribute('font-size','12');
+        t.setAttribute('fill','#dbeafe');
+        t.textContent=e.label.trim();
+        viewport.appendChild(t);
+      }
+    }
+
+    // nodes
+    for(const n of nodes){
+      if(visibleIds && !visibleIds.has(n.id)) continue;
+
+      const g=docSvg('g');
+      g.setAttribute('data-id', n.id);
+      g.style.cursor='grab';
+
+      const circle=docSvg('circle');
+      circle.setAttribute('cx',n.x);
+      circle.setAttribute('cy',n.y);
+      circle.setAttribute('r',rNode);
+      const baseCol = categoryColor(n.category);
+      const fillCol = (n.subtype && String(n.subtype).trim()) ? lightenHex(baseCol, subTintAmount) : baseCol;
+      circle.setAttribute('fill', fillCol);
+      const stroke = (connectMode && connectSource===n.id) ? '#f59e0b' : (selectedId===n.id ? '#ffffff' : 'rgba(255,255,255,0.7)');
+      circle.setAttribute('stroke', stroke);
+      circle.setAttribute('stroke-width', selectedId===n.id ? '3' : '2');
+
+      const label=docSvg('text');
+      label.setAttribute('x',n.x);
+      label.setAttribute('y',n.y + rNode + 16);
+      label.setAttribute('text-anchor','middle');
+      label.setAttribute('font-size','12');
+      label.setAttribute('fill','#dbeafe');
+      label.textContent = n.label;
+
+      const sub=docSvg('text');
+      sub.setAttribute('x',n.x);
+      sub.setAttribute('y',n.y + rNode + 30);
+      sub.setAttribute('text-anchor','middle');
+      sub.setAttribute('font-size','11');
+      sub.setAttribute('fill','#a3b6ff');
+      const range = formatRange(n.start, n.end);
+      const dur = durationText(n.start, n.end);
+      const parts = [];
+      if(n.title && n.title.trim()) parts.push(n.title.trim());
+      if(range){
+        const showDur = !!(n.start && n.start.trim());
+        parts.push(showDur && dur ? `${range} (${dur})` : range);
+      }
+      const subText = parts.join(' • ');
+      if(subText) sub.textContent = subText;
+
+      g.appendChild(circle);
+      g.appendChild(label);
+      if(subText) g.appendChild(sub);
+
+      // interactions
+      g.addEventListener('pointerdown', ev=>onNodePointerDown(ev,n.id));
+      g.addEventListener('click', ev=>{
+        ev.stopPropagation();
+        startupMode = false;
+        if(connectMode){
+          if(!connectSource){ connectSource=n.id; startPreview(); draw(); }
+          else { makeConnection(connectSource,n.id); setConnectMode(false); }
+          return;
+        }
+        if(ev.shiftKey){
+          endSearchOverride();
+          if(expandedIds.has(n.id)) collapseNode(n.id); else expandNode(n.id);
+          fitToScreen();
+        }
+        selectNode(n.id);
+      });
+      g.addEventListener('dblclick', ev=>{
+        ev.stopPropagation();
+        startupMode=false;
+        if(connectMode) return;
+        endSearchOverride();
+        if(expandedIds.has(n.id)) collapseNode(n.id); else expandNode(n.id);
+        selectNode(n.id);
+        fitToScreen();
+      });
+
+      viewport.appendChild(g);
+    }
+
+    updateTransform();
+    updateEdgeButtons();
+    if(previewLine && connectMode && connectSource){ viewport.appendChild(previewLine); }
+  }
+
+  function updateTransform(){
+    viewport.setAttribute('transform', `translate(${pan.x},${pan.y}) scale(${scale})`);
+    const badge = document.getElementById('scaleBadge');
+    if(badge){
+      const z = `Zoom: ${(scale*100).toFixed(0)}%`;
+      const mode = searchOverrideActive ? ' · Search' : (startupMode ? ' · Focused' : ' · Expand view');
+      const f = visibleIds ? ` · Showing: ${visibleIds.size} node${visibleIds.size!==1?'s':''}` : '';
+      badge.textContent = z + mode + f;
+    }
+  }
+
+  // ====== Expand/collapse =====================================================
+  function expandNode(id){ if(!nodeById.has(id)) return; expandedIds.add(id); draw(); }
+  function collapseNode(id){
+    if(!expandedIds.has(id)) return;
+    const stack=[id];
+    while(stack.length){
+      const cur=stack.pop();
+      expandedIds.delete(cur);
+      for(const c of getChildren(cur)){ if(expandedIds.has(c)) stack.push(c); }
+    }
+    draw();
+  }
+
+  // ====== Selection & sidebar =================================================
+  function selectNode(id){
+    selectedId=id; selectedEdgeId=null; draw(); updateEdgeButtons();
+    const n=id? nodeById.get(id):null;
+    sidebar.style.display = n ? 'block' : 'none';
+    if(n){
+      sideEmpty.style.display='none';
+      sideEdge.style.display='none';
+      sideNode.style.display='block';
+      sideLabel.textContent = n.label || '(untitled)';
+      sideType.textContent = categoryName(n.category||'other');
+      sideTitle.textContent = (n.title||'').trim() || '—';
+      const rangeTxt = formatRange(n.start, n.end);
+      const durTxt = durationText(n.start, n.end);
+      sideDates.textContent = rangeTxt ? (durTxt? `${rangeTxt} (${durTxt})` : rangeTxt) : '—';
+      sideNotes.textContent = (n.notes||'').trim() || '—';
+      sideEditBtn.textContent = inspectorVisible ? 'Close Editor' : 'Edit Node';
+
+      // sync inputs
+      labelInput.value=n.label||'';
+      categorySelect.value=n.category||'other';
+      populateSubtypes(n.category||'other');
+      subTypeSelect.value = n.subtype||'';
+      notesInput.value=n.notes||'';
+      startInput.value=n.start||'';
+      endInput.value=n.end||'';
+      titleInput.value=n.title||'';
+    } else {
+      sideNode.style.display='none';
+      sideEdge.style.display='none';
+      sideEmpty.style.display='block';
+      inspector.style.display='none';
+    }
+  }
+  function selectEdge(eid){
+    selectedEdgeId=eid; selectedId=null;
+    const e=edges.find(x=>x.id===eid); if(!e) return;
+    draw(); updateEdgeButtons();
+    sidebar.style.display='block';
+    const a=nodeById.get(e.from), b=nodeById.get(e.to);
+    sideEmpty.style.display='none'; sideNode.style.display='none'; sideEdge.style.display='block';
+    sideFrom.textContent = a? a.label: e.from;
+    sideTo.textContent = b? b.label: e.to;
+    const rel = (RELATIONS.find(r=>r.id===e.type)||{name:e.type||'related'}).name;
+    sideEdgeType.textContent = rel;
+    sideEdgeLabel.textContent = (e.label||'').trim() || '—';
+    if(inspectorVisible){
+      sideEdgeEditorMount.appendChild(inspector);
+      inspector.style.display='grid';
+      edgeInspector.style.display='block';
+      edgeLabelInput.value=e.label||'';
+      edgeTypeSelect.value=e.type||'related';
+    } else {
+      inspector.style.display='none';
+    }
+    sideEditBtn.textContent = inspectorVisible ? 'Close Editor' : 'Edit Node';
+  }
+
+  // ====== Inputs & editor wiring =============================================
+  CATEGORIES.forEach(c=>{ const opt=document.createElement('option'); opt.value=c.id; opt.textContent=c.name; categorySelect.appendChild(opt); });
+  RELATIONS.forEach(r=>{ const opt=document.createElement('option'); opt.value=r.id; opt.textContent=r.name; edgeTypeSelect.appendChild(opt); });
+  function populateSubtypes(cat){
+    if(!subTypeSelect) return;
+    subTypeSelect.innerHTML='';
+    const list = SUBTYPES[cat] || SUBTYPES.other;
+    for(const it of list){
+      const opt=document.createElement('option');
+      opt.value=it.id; opt.textContent=it.name;
+      subTypeSelect.appendChild(opt);
+    }
+  }
+  populateSubtypes('other');
+
+  labelInput.addEventListener('input', ()=>{ const n=nodeById.get(selectedId); if(!n) return; n.label=labelInput.value; draw(); scheduleAutosave(); });
+  labelInput.addEventListener('blur', recordHistory);
+
+  categorySelect.addEventListener('change', ()=>{
+    const n=nodeById.get(selectedId); if(!n) return;
+    n.category=categorySelect.value;
+    populateSubtypes(n.category);
+    if(!(SUBTYPES[n.category]||[]).some(x=>x.id===n.subtype)) n.subtype='';
+    subTypeSelect.value=n.subtype||''; 
+    draw(); scheduleAutosave(); recordHistory();
+  });
+  subTypeSelect.addEventListener('change', ()=>{ const n=nodeById.get(selectedId); if(!n) return; n.subtype=subTypeSelect.value||''; draw(); scheduleAutosave(); recordHistory(); });
+  notesInput.addEventListener('input', ()=>{ const n=nodeById.get(selectedId); if(!n) return; n.notes=notesInput.value; scheduleAutosave(); });
+  notesInput.addEventListener('blur', recordHistory);
+
+  edgeLabelInput.addEventListener('input', ()=>{ if(!selectedEdgeId) return; const e=edges.find(x=>x.id===selectedEdgeId); if(!e) return; e.label=edgeLabelInput.value; scheduleAutosave(); draw(); });
+  edgeLabelInput.addEventListener('blur', recordHistory);
+  edgeTypeSelect.addEventListener('change', ()=>{ if(!selectedEdgeId) return; const e=edges.find(x=>x.id===selectedEdgeId); if(!e) return; e.type=edgeTypeSelect.value; scheduleAutosave(); draw(); recordHistory(); });
+  edgeLooseChk.addEventListener('change', ()=>{ if(!selectedEdgeId) return; const e=edges.find(x=>x.id===selectedEdgeId); if(!e) return; e.loose=!!edgeLooseChk.checked; if(e.loose){ initAnchorsForEdge(e); } else { delete e.ax; delete e.ay; delete e.bx; delete e.by; } scheduleAutosave(); draw(); recordHistory(); });
+  edgeResetAnchorsBtn.addEventListener('click', ()=>{ if(!selectedEdgeId) return; const e=edges.find(x=>x.id===selectedEdgeId); if(!e) return; initAnchorsForEdge(e); scheduleAutosave(); draw(); recordHistory(); });
+
+  startInput.addEventListener('input', ()=>{ const n=nodeById.get(selectedId); if(!n) return; n.start=startInput.value; draw(); scheduleAutosave(); });
+  endInput.addEventListener('input',   ()=>{ const n=nodeById.get(selectedId); if(!n) return; n.end=endInput.value;   draw(); scheduleAutosave(); });
+  titleInput.addEventListener('input', ()=>{ const n=nodeById.get(selectedId); if(!n) return; n.title=titleInput.value; draw(); scheduleAutosave(); });
+  [startInput,endInput,titleInput].forEach(el=> el.addEventListener('blur', recordHistory));
+
+  sideAddChildBtn.addEventListener('click', ()=> addChild());
+  function addChild(){
+    const parent=nodeById.get(selectedId); if(!parent) return;
+    const id=uniqueId('n');
+    const child={ id, label:'New node', x: parent.x + 140, y: parent.y + (Math.random()*120-60), category:'other', subtype:'', notes:'', start:'', end:'', title:'' };
+    nodes.push(child); nodeById.set(id,child);
+    const eid=uniqueId('e'); edges.push({ id:eid, from: parent.id, to: id, type:'related', label:'' });
+    rebuildChildren(); expandedIds.add(parent.id); startupMode=false; draw(); selectNode(id); scheduleAutosave(); recordHistory(); fitToScreen();
+  }
+
+  sideEditBtn.addEventListener('click', ()=>{ 
+    inspectorVisible = !inspectorVisible; 
+    if(selectedId){
+      sideEditorMount.appendChild(inspector);
+      inspector.style.display = inspectorVisible ? 'grid' : 'none';
+      sideEditBtn.textContent = inspectorVisible ? 'Close Editor' : 'Edit Node';
+    }
+  });
+  sideEditEdgeBtn.addEventListener('click', ()=>{ inspectorVisible=true; if(selectedEdgeId){ selectEdge(selectedEdgeId); } });
+  sideDeleteEdgeBtn.addEventListener('click', deleteSelectedEdge);
+
+  // ====== Dragging nodes & loose anchors =====================================
+  let nodeDrag=null;
+  function onNodePointerDown(ev,id){
+    ev.stopPropagation();
+    if(connectMode){ return; }
+    const affected=[id,...getDescendants(id)];
+    const startPositions=new Map(affected.map(nid=>{ const n=nodeById.get(nid); return [nid,{x:n.x,y:n.y}]; }));
+    nodeDrag={ id, start:{ x: ev.clientX, y: ev.clientY }, affectedIds: affected, startPositions };
+    const target=ev.currentTarget;
+    if(target && typeof target.setPointerCapture === 'function' && ev.pointerId !== undefined){
+      try{ target.setPointerCapture(ev.pointerId); }catch{}
+    }
+    if(target && target.style) target.style.cursor='grabbing';
+  }
+  function onNodePointerMove(ev){
+    if(!nodeDrag) return;
+    ev.preventDefault();
+    const dx=(ev.clientX - nodeDrag.start.x)/scale;
+    const dy=(ev.clientY - nodeDrag.start.y)/scale;
+    for(const nid of nodeDrag.affectedIds){
+      const p=nodeDrag.startPositions.get(nid);
+      const n=nodeById.get(nid);
+      n.x=p.x+dx; n.y=p.y+dy;
+    }
+    draw();
+  }
+  function onNodePointerUp(ev){
+    if(!nodeDrag) return;
+    const target=ev.target;
+    if(target && target.style) target.style.cursor='grab';
+    nodeDrag=null; scheduleAutosave(); recordHistory();
+  }
+  svg.addEventListener('pointermove', onNodePointerMove);
+  svg.addEventListener('pointerup', onNodePointerUp);
+  svg.addEventListener('pointercancel', onNodePointerUp);
+
+  function getDescendants(id){
+    const seen=new Set(), out=[];
+    (function dfs(nid){
+      const kids=childrenMap.get(nid)||[];
+      for(const k of kids){ if(!seen.has(k)){ seen.add(k); out.push(k); dfs(k); } }
+    })(id);
+    return out;
+  }
+
+  // loose anchors for edges
+  function initAnchorsForEdge(e){
+    const a=nodeById.get(e.from), b=nodeById.get(e.to); if(!a||!b) return;
+    const f1=0.2, f2=0.8;
+    e.ax = a.x + (b.x - a.x)*f1; e.ay = a.y + (b.y - a.y)*f1;
+    e.bx = a.x + (b.x - a.x)*f2; e.by = a.y + (b.y - a.y)*f2;
+  }
+
+  // ====== Pan & Zoom ==========================================================
+  let panning=null;
+  svg.addEventListener('pointerdown',(ev)=>{
+    const isNode=ev.composedPath().some(el=> el instanceof SVGGElement && el.hasAttribute && el.hasAttribute('data-id'));
+    if(isNode) return;
+    startupMode=false;
+    selectNode(null);
+    panning={ start:{x:ev.clientX,y:ev.clientY}, pan0:{...pan} };
+    if(typeof svg.setPointerCapture === 'function' && ev.pointerId !== undefined){
+      try{ svg.setPointerCapture(ev.pointerId); }catch{}
+    }
+    canvas.style.cursor='grabbing';
+  });
+  svg.addEventListener('pointermove',(ev)=>{
+    if(!panning) return;
+    ev.preventDefault();
+    pan.x = panning.pan0.x + (ev.clientX - panning.start.x);
+    pan.y = panning.pan0.y + (ev.clientY - panning.start.y);
+    updateTransform();
+  });
+  function endPan(){ if(!panning) return; panning=null; canvas.style.cursor='default'; }
+  svg.addEventListener('pointerup', endPan);
+  svg.addEventListener('pointerleave', endPan);
+
+  svg.addEventListener('wheel',(ev)=>{
+    ev.preventDefault();
+    const rect=svg.getBoundingClientRect();
+    const px=ev.clientX-rect.left, py=ev.clientY-rect.top;
+    const before=screenToWorld(px,py);
+    const factor=Math.exp(-ev.deltaY*0.0025);
+    scale=clamp(scale*factor,0.25,3.5);
+    const after=screenToWorld(px,py);
+    pan.x += (after.x - before.x) * scale;
+    pan.y += (after.y - before.y) * scale;
+    updateTransform();
+  }, { passive:false });
+
+  function screenToWorld(x,y){ return { x: (x - pan.x)/scale, y: (y - pan.y)/scale }; }
+  function worldToScreen(x,y){ return { x: x*scale + pan.x, y: y*scale + pan.y }; }
+  function zoomBy(mult){
+    const cx=svg.clientWidth/2, cy=svg.clientHeight/2;
+    const before=screenToWorld(cx,cy);
+    scale=clamp(scale*mult,0.25,3.5);
+    const after=screenToWorld(cx,cy);
+    pan.x += (after.x - before.x) * scale;
+    pan.y += (after.y - before.y) * scale;
+    updateTransform();
+  }
+
+  // ====== Fit / Export ========================================================
+  function fitToScreen(){
+    const list = visibleIds ? nodes.filter(n=>visibleIds.has(n.id)) : nodes;
+    if(list.length===0) { 
+      scale=1; pan={ x: svg.clientWidth/2, y: svg.clientHeight/2 }; updateTransform(); return;
+    }
+    const pad=60;
+    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+    for(const n of list){ minX=Math.min(minX,n.x); minY=Math.min(minY,n.y); maxX=Math.max(maxX,n.x); maxY=Math.max(maxY,n.y); }
+    minY-=(rNode+24); maxY+=(rNode+24); minX-=(rNode+24); maxX+=(rNode+24);
+    const w=maxX-minX, h=maxY-minY;
+    if(w<=0 || h<=0){ scale=1; pan={ x: svg.clientWidth/2, y: svg.clientHeight/2 }; updateTransform(); return; }
+    const sx=(svg.clientWidth-2*pad)/w;
+    const sy=(svg.clientHeight-2*pad)/h;
+    scale=Math.min(Math.max(Math.min(sx,sy),0.25),3.5);
+    const worldCx=(minX+maxX)/2, worldCy=(minY+maxY)/2;
+    pan.x = svg.clientWidth/2 - worldCx*scale;
+    pan.y = svg.clientHeight/2 - worldCy*scale;
+    updateTransform();
+  }
+
+  function computeAllBounds(){
+    if(nodes.length===0) return {minX:0,minY:0,maxX:0,maxY:0};
+    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+    for(const n of nodes){ minX=Math.min(minX,n.x); minY=Math.min(minY,n.y); maxX=Math.max(maxX,n.x); maxY=Math.max(maxY,n.y); }
+    const pad = rNode+24; return {minX:minX-pad, minY:minY-pad, maxX:maxX+pad, maxY:maxY+pad};
+  }
+  function withAllContentForExport(run){
+    const prev = { vis: visibleIds? new Set(visibleIds):null, search: searchOverrideActive, startup: startupMode, subf: subFilterActive, scale0: scale, pan0:{x:pan.x,y:pan.y} };
+    try{ searchOverrideActive=false; startupMode=false; subFilterActive=false; scale=1; pan={x:0,y:0}; updateTransform(); draw(); run(); }
+    finally{ visibleIds=prev.vis; searchOverrideActive=prev.search; startupMode=prev.startup; subFilterActive=prev.subf; scale=prev.scale0; pan=prev.pan0; updateTransform(); draw(); }
+  }
+  function exportJSON(){
+    const data={nodes,edges};
+    const blob=new Blob([JSON.stringify(data,null,2)], { type:'application/json' });
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='mindmap.json'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 3000);
+  }
+  function exportSVG(){
+    withAllContentForExport(()=>{
+      const b=computeAllBounds();
+      const clone=svg.cloneNode(true);
+      clone.removeAttribute('style');
+      clone.setAttribute('viewBox', `${b.minX} ${b.minY} ${Math.max(1,b.maxX-b.minX)} ${Math.max(1,b.maxY-b.minY)}`);
+      const serializer=new XMLSerializer();
+      let source=serializer.serializeToString(clone);
+      if(!source.match(/^<svg[^>]+xmlns=/)) source=source.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');
+      const blob=new Blob([source],{type:'image/svg+xml;charset=utf-8'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download='mindmap.svg'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(url),3000);
+    });
+  }
+  function exportPNG(){
+    withAllContentForExport(()=>{
+      const b=computeAllBounds();
+      const clone=svg.cloneNode(true);
+      clone.removeAttribute('style');
+      clone.setAttribute('viewBox', `${b.minX} ${b.minY} ${Math.max(1,b.maxX-b.minX)} ${Math.max(1,b.maxY-b.minY)}`);
+      const serializer=new XMLSerializer();
+      let source=serializer.serializeToString(clone);
+      if(!source.match(/^<svg[^>]+xmlns=/)) source=source.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');
+      const url='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(source);
+      const img=new Image();
+      const canvasEl=document.createElement('canvas');
+      const w=Math.ceil(Math.max(1,b.maxX-b.minX)), h=Math.ceil(Math.max(1,b.maxY-b.minY));
+      canvasEl.width=w; canvasEl.height=h;
+      const ctx=canvasEl.getContext('2d');
+      img.onload=()=>{ ctx.drawImage(img,0,0); canvasEl.toBlob((blob)=>{ const a=document.createElement('a'); const url2=URL.createObjectURL(blob); a.href=url2; a.download='mindmap.png'; a.click(); setTimeout(()=>URL.revokeObjectURL(url2),3000); }); };
+      img.src=url;
+    });
+  }
+
+  // ====== Clipboard / connections / delete ===================================
+  function uniqueId(prefix){ return prefix + Math.random().toString(36).slice(2,8); }
+
+  let clipboard=null;
+  function copySelection(){
+    if(!selectedId) return;
+    const ids = new Set([selectedId, ...getDescendants(selectedId)]);
+    const copyNodes = nodes.filter(n=> ids.has(n.id)).map(n=>({...n}));
+    const copyEdges = edges.filter(e=> ids.has(e.from) && ids.has(e.to)).map(e=>({...e}));
+    clipboard = { nodes: copyNodes, edges: copyEdges };
+  }
+  function pasteClipboard(){
+    if(!clipboard || !Array.isArray(clipboard.nodes) || clipboard.nodes.length===0) return;
+    const idMap = new Map();
+    const offset = 40;
+    for(const orig of clipboard.nodes){
+      const newId = uniqueId('n');
+      idMap.set(orig.id, newId);
+      const node = {...orig, id:newId, x:(orig.x||0)+offset, y:(orig.y||0)+offset};
+      nodes.push(node);
+      nodeById.set(newId, node);
+    }
+    for(const oe of clipboard.edges||[]){
+      const from = idMap.get(oe.from);
+      const to   = idMap.get(oe.to);
+      if(!from || !to) continue;
+      const eid = uniqueId('e');
+      edges.push({ id:eid, from, to, type: oe.type||'related', label: oe.label||'' });
+    }
+    rebuildChildren(); startupMode=false; draw();
+    const first = idMap.values().next();
+    if(first && !first.done) selectNode(first.value);
+    scheduleAutosave(); recordHistory(); fitToScreen();
+  }
+
+  function makeConnection(fromId,toId){
+    if(!fromId||!toId||fromId===toId) return;
+    if(edges.some(e=> e.from===fromId && e.to===toId)) return;
+    const eid=uniqueId('e'); edges.push({ id:eid, from: fromId, to: toId, type:'related', label:'' });
+    rebuildChildren(); expandedIds.add(fromId); startupMode=false; draw(); selectNode(toId); scheduleAutosave(); recordHistory(); fitToScreen();
+  }
+  function deleteSelectedNode(){
+    const id=selectedId; if(!id) return;
+    const toRemove=new Set([id,...getDescendants(id)]);
+    for(let i=edges.length-1;i>=0;i--){ if(toRemove.has(edges[i].from) || toRemove.has(edges[i].to)) edges.splice(i,1); }
+    for(let i=nodes.length-1;i>=0;i--){ if(toRemove.has(nodes[i].id)) nodes.splice(i,1); }
+    toRemove.forEach(nid=> nodeById.delete(nid));
+    rebuildChildren(); for(const nid of toRemove) expandedIds.delete(nid);
+    selectedId=null; selectNode(null); draw(); scheduleAutosave(); recordHistory(); fitToScreen();
+  }
+  function deleteSelectedEdge(){ if(!selectedEdgeId) return; const idx=edges.findIndex(e=> e.id===selectedEdgeId); if(idx>=0){ edges.splice(idx,1); } selectedEdgeId=null; rebuildChildren(); draw(); scheduleAutosave(); recordHistory(); updateEdgeButtons(); }
+  function reverseSelectedEdge(){ if(!selectedEdgeId) return; const e=edges.find(x=> x.id===selectedEdgeId); if(!e) return; if(edges.some(x=> x.from===e.to && x.to===e.from)) return; const tmp=e.from; e.from=e.to; e.to=tmp; rebuildChildren(); draw(); scheduleAutosave(); recordHistory(); updateEdgeButtons(); }
+  function updateEdgeButtons(){ const has=!!selectedEdgeId; reverseEdgeBtn.disabled=!has; deleteEdgeBtn.disabled=!has; }
+
+  // ====== Connect preview =====================================================
+  function startPreview(){
+    if(!previewLine){
+      const l=docSvg('line');
+      l.setAttribute('stroke','#f59e0b');
+      l.setAttribute('stroke-width','2');
+      l.setAttribute('stroke-dasharray','6 6');
+      l.style.pointerEvents='none';
+      viewport.appendChild(l);
+      previewLine=l;
+    }
+  }
+  function stopPreview(){ if(previewLine){ previewLine.remove(); previewLine=null; } }
+  function setConnectMode(on){ connectMode=!!on; if(!connectMode){ connectSource=null; stopPreview(); } connectBtn.classList.toggle('active', connectMode); draw(); }
+  svg.addEventListener('mousemove',(ev)=>{
+    if(!(connectMode && connectSource)) return;
+    const rect=svg.getBoundingClientRect();
+    const px=ev.clientX-rect.left, py=ev.clientY-rect.top;
+    const {x,y}=screenToWorld(px,py);
+    const src=nodeById.get(connectSource); if(!src) return;
+    if(!previewLine) startPreview();
+    previewLine.setAttribute('x1',src.x); previewLine.setAttribute('y1',src.y);
+    previewLine.setAttribute('x2',x);     previewLine.setAttribute('y2',y);
+  });
+
+  // ====== Search controls =====================================================
+  function endSearchOverride(){ visibleIds=null; searchOverrideActive=false; }
+  function applySearchFilter(query){
+    const result = findMatches(query);
+    setVisible(result===null ? null : result);
+    if(result!==null){ startupMode = false; }
+  }
+  function clearSearchFilter(){
+    searchInput.value=''; setVisible(null);
+  }
+
+  // ====== Buttons & keyboard ==================================================
+  undoBtn.onclick=undo;
+  redoBtn.onclick=redo;
+  copyBtn.onclick=copySelection;
+  pasteBtn.onclick=pasteClipboard;
+  addNodeBtn.onclick=()=>{ const center=screenToWorld(svg.clientWidth/2, svg.clientHeight/2); const id=uniqueId('n'); const node={ id, label:'New node', x:center.x, y:center.y, category:'other', subtype:'', notes:'', start:'', end:'', title:'' }; nodes.push(node); nodeById.set(id,node); rebuildChildren(); startupMode=false; draw(); selectNode(id); scheduleAutosave(); recordHistory(); };
+  reverseEdgeBtn.onclick=reverseSelectedEdge;
+  deleteEdgeBtn.onclick=deleteSelectedEdge;
+  connectBtn.onclick=()=>{ setConnectMode(!connectMode); if(connectMode && selectedId){ connectSource=selectedId; startPreview(); } };
+  zoomInBtn.onclick=()=>zoomBy(1.2);
+  zoomOutBtn.onclick=()=>zoomBy(1/1.2);
+  resetBtn.onclick=()=>{ scale=1; pan={ x: svg.clientWidth/2, y: svg.clientHeight/2 }; updateTransform(); };
+  fitBtn.onclick=fitToScreen;
+  expandAllBtn.onclick=()=>{ expandedIds.clear(); nodes.forEach(n=> expandedIds.add(n.id)); startupMode=false; draw(); fitToScreen(); };
+
+  exportBtn.addEventListener('click',(e)=>{ e.stopPropagation(); exportMenu.classList.toggle('open'); });
+  document.addEventListener('click',()=>{ exportMenu.classList.remove('open'); });
+  exportJsonItem.onclick=exportJSON;
+  exportSvgItem.onclick=exportSVG;
+  exportPngItem.onclick=exportPNG;
+
+  loadBtn.onclick=()=> loadInput.click();
+  loadInput.addEventListener('change',(ev)=>{
+    const input = ev.target;
+    const file=input.files && input.files[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        const raw = JSON.parse(String(reader.result));
+        if(!(Array.isArray(raw.nodes)&&Array.isArray(raw.edges))){ alert('Invalid JSON format. Expect {nodes:[], edges:[]}'); input.value=''; return; }
+        applyState(raw);
+        recordHistory(); fitToScreen();
+      }catch{ alert('Invalid JSON'); }
+      input.value='';
+    };
+    reader.readAsText(file);
+  });
+
+  searchBtn.onclick = ()=> applySearchFilter(searchInput.value);
+  clearSearchBtn.onclick = clearSearchFilter;
+  searchInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ applySearchFilter(searchInput.value); } });
+  if(subFilterBtn){ subFilterBtn.addEventListener('click', ()=>{ subFilterActive=!subFilterActive; subFilterBtn.classList.toggle('active', subFilterActive); draw(); fitToScreen(); }); }
+  if(subTintSelect){ subTintSelect.addEventListener('change', ()=>{ const v=parseFloat(subTintSelect.value); if(!isNaN(v)) subTintAmount=v; draw(); }); }
+
+  document.addEventListener('keydown',(e)=>{
+    const targetTag=(e.target && e.target.tagName)||'';
+    const typing = ['INPUT','TEXTAREA','SELECT'].includes(targetTag) || (e.target && e.target.isContentEditable);
+    const mod=e.ctrlKey||e.metaKey;
+
+    if(typing){
+      if(e.key==='Delete' || e.key==='Backspace') return;
+    }
+    if(mod && e.key.toLowerCase()==='z'){ if(e.shiftKey){ redo(); } else { undo(); } e.preventDefault(); }
+    if(mod && e.key.toLowerCase()==='y'){ redo(); e.preventDefault(); }
+    if(mod && e.key.toLowerCase()==='c'){ copySelection(); e.preventDefault(); }
+    if(mod && e.key.toLowerCase()==='v'){ pasteClipboard(); e.preventDefault(); }
+    if(e.altKey && e.key.toLowerCase()==='c'){ setConnectMode(!connectMode); if(connectMode && selectedId){ connectSource=selectedId; startPreview(); } e.preventDefault(); }
+    if(e.altKey && e.key.toLowerCase()==='n'){ addNodeBtn.click(); e.preventDefault(); }
+    if(e.key==='Escape' && connectMode){ setConnectMode(false); }
+    if((e.key==='Delete' || e.key==='Backspace')){ if(selectedEdgeId){ deleteSelectedEdge(); e.preventDefault(); } else if(selectedId){ deleteSelectedNode(); e.preventDefault(); } }
+    if(e.altKey && e.key.toLowerCase()==='r' && selectedEdgeId){ reverseSelectedEdge(); e.preventDefault(); }
+  });
+
+  window.addEventListener('resize', updateTransform);
+
+  // ====== Public API (for future extensions) =================================
+  window.__MindMap = {
+    get nodes(){return nodes}, get edges(){return edges},
+    get selectedId(){return selectedId}, get selectedEdgeId(){return selectedEdgeId},
+    set selectedId(v){ selectNode(v) }, set selectedEdgeId(v){ selectEdge(v) },
+    draw, fitToScreen, sanitizeData, rebuildChildren,
+    helpers:{ categoryName, relationStyle, prettyDate, durationText, formatRange }
+  };
+
+  // ====== First paint =========================================================
+  // ensure maps are built and UI is responsive
+  recordHistory();
+  draw();
+  fitToScreen();
+})();
+</script>
