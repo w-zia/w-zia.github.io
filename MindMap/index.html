@@ -907,24 +907,17 @@
   }
 
   // --- 2) Quick edit shortcuts ----------------------------------------------
-  // F2: focus the label input (opens editor if needed)
-  // I: toggle inspector open/close for the selected node
-  document.addEventListener('keydown', (e)=>{
-    const key = e.key || '';
-    if(key === 'F2'){
-      if(!MM.selectedId) return;
-      const sidebar = document.getElementById('sidebar');
-      if(sidebar && sidebar.style.display!=='block'){ sidebar.style.display='block'; }
-      const editBtn = document.getElementById('sideEditBtn');
-      const insp = document.getElementById('inspector');
-      if(insp && getComputedStyle(insp).display==='none' && editBtn){ editBtn.click(); }
-      const input = document.getElementById('labelInput');
-      if(input){ input.focus(); input.select(); e.preventDefault(); }
-    } else if(key.toLowerCase() === 'i'){
-      const editBtn = document.getElementById('sideEditBtn');
-      if(editBtn){ editBtn.click(); e.preventDefault(); }
-    }
-  });
+// F2: focus the label input (opens editor if needed)
+// I: toggle inspector open/close for the selected node
+document.addEventListener('keydown', (e)=>{
+  const key = e.key || '';
+  if(key === 'F2'){
+    ...
+  } else if(key.toLowerCase() === 'i'){
+    const editBtn = document.getElementById('sideEditBtn');
+    if(editBtn){ editBtn.click(); e.preventDefault(); }
+  }
+});
 
   // --- 3) Safety guard: if zoom text glitches to NaN, refit the scene --------
   const badge = document.getElementById('scaleBadge');
