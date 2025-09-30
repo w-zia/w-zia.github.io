@@ -11,6 +11,7 @@ const PLATFORM_CONFIG = {
     }
 };
 
+
 // Application Data with Real URLs
 const APPLICATION_DATA = {
     subscriptionTiers: [
