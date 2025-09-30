@@ -33,7 +33,7 @@
                     <div class="user-menu">
                         <button class="btn btn--outline btn--sm user-menu-btn">
                             <i class="fas fa-user"></i>
-                            <span>Waqaas Zia</span>
+                            <span>Sarah Chen</span>
                             <i class="fas fa-chevron-down"></i>
                         </button>
                         <div class="user-dropdown hidden">
@@ -112,6 +112,11 @@
                                             <span class="metric-value">1,250 MW</span>
                                             <span class="metric-label">Solar Forecast</span>
                                         </div>
+                                    </div>
+                                    <div class="showcase-actions">
+                                        <button class="btn btn--primary btn--sm" onclick="accessSourceData('neso-wind-solar')">
+                                            <i class="fas fa-external-link-alt"></i> Access Live Data
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -258,11 +263,11 @@
                             <div class="card-content">
                                 <h3>API Usage</h3>
                                 <div class="card-metric">
-                                    <span class="metric-value">8,420</span>
+                                    <span class="metric-value">7,500</span>
                                     <span class="metric-unit">/ 10,000 calls</span>
                                 </div>
                                 <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 84.2%;"></div>
+                                    <div class="progress-fill" style="width: 75%;"></div>
                                 </div>
                             </div>
                         </div>
@@ -410,6 +415,31 @@
                             </table>
                         </div>
                     </section>
+
+                    <!-- External Links Section -->
+                    <section class="doc-section">
+                        <h2>Direct Data Source Access</h2>
+                        <p>Many of our data sources are available directly from their providers. Use the "Access Data" buttons throughout the platform to visit the original sources.</p>
+                        
+                        <div class="external-links-grid">
+                            <div class="external-link-card">
+                                <h4>Live Data Sources</h4>
+                                <ul>
+                                    <li><a href="https://www.neso.energy/data-portal/embedded-wind-and-solar-forecasts" target="_blank" rel="noopener">NESO Wind & Solar <i class="fas fa-external-link-alt"></i></a></li>
+                                    <li><a href="https://www.solar.sheffield.ac.uk/pvlive/" target="_blank" rel="noopener">PV_Live Solar Data <i class="fas fa-external-link-alt"></i></a></li>
+                                    <li><a href="https://open-meteo.com" target="_blank" rel="noopener">Marine Weather API <i class="fas fa-external-link-alt"></i></a></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="external-link-card">
+                                <h4>Government Data</h4>
+                                <ul>
+                                    <li><a href="https://www.gov.uk/government/publications/renewable-energy-planning-database-monthly-extract" target="_blank" rel="noopener">REPD Database <i class="fas fa-external-link-alt"></i></a></li>
+                                    <li><a href="https://www.gov.uk/government/publications/hydrogen-production-delivery-roadmap/hydrogen-production-delivery-roadmap" target="_blank" rel="noopener">Hydrogen Roadmap <i class="fas fa-external-link-alt"></i></a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>
@@ -448,6 +478,15 @@
                                 <li>Professional support and documentation</li>
                             </ul>
 
+                            <h3>Accessing Data Sources</h3>
+                            <p>Each data source on our platform has an "Access Data" button that will:</p>
+                            <ul>
+                                <li>Check your subscription level for premium sources</li>
+                                <li>Track your access for dashboard reporting</li>
+                                <li>Open the original data source in a new tab</li>
+                                <li>Provide confirmation and leaving notifications</li>
+                            </ul>
+
                             <h3>Account Setup</h3>
                             <ol>
                                 <li>Create your account on the platform</li>
@@ -476,23 +515,44 @@
                                     <p>Experimental or limited quality data</p>
                                 </div>
                             </div>
+
+                            <h3>Access Types</h3>
+                            <ul>
+                                <li><strong>Open:</strong> Freely available to all users</li>
+                                <li><strong>Restricted:</strong> Requires approval or registration</li>
+                                <li><strong>Membership:</strong> Requires organization membership</li>
+                                <li><strong>Mixed:</strong> Combination of open and restricted access</li>
+                            </ul>
                         </div>
                         
                         <div class="docs-section hidden" id="docs-api-reference">
                             <h2>API Reference</h2>
                             <p>Complete reference for all API endpoints and parameters.</p>
-                            <!-- More API documentation content -->
+                            
+                            <h3>Authentication</h3>
+                            <p>All API requests require authentication using your API key in the Authorization header:</p>
+                            <pre><code>Authorization: Bearer YOUR_API_KEY</code></pre>
+                            
+                            <h3>Base URL</h3>
+                            <p>All API requests should be made to:</p>
+                            <pre><code>https://api.nztc.com/v1/</code></pre>
                         </div>
                         
                         <div class="docs-section hidden" id="docs-integrations">
                             <h2>Integrations</h2>
                             <p>Learn how to integrate NZTC data into popular platforms and tools.</p>
-                            <!-- Integration guides -->
+                            
+                            <h3>Direct Data Source Access</h3>
+                            <p>Many data sources can be accessed directly from their providers. The platform tracks your access and provides a unified interface.</p>
                         </div>
                         
                         <div class="docs-section hidden" id="docs-faq">
                             <h2>Frequently Asked Questions</h2>
                             <div class="faq-list">
+                                <div class="faq-item">
+                                    <h4>How do the "Access Data" buttons work?</h4>
+                                    <p>The Access Data buttons will check your subscription level, track your usage, and then open the original data source in a new tab. You'll see a confirmation dialog before leaving the platform.</p>
+                                </div>
                                 <div class="faq-item">
                                     <h4>How do I upgrade my subscription?</h4>
                                     <p>You can upgrade your subscription from your dashboard or contact our sales team for enterprise solutions.</p>
@@ -604,7 +664,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 5 Net Zero Technology Centre. All rights reserved.</p>
+                <p>&copy; 2024 Net Zero Technology Centre. All rights reserved.</p>
                 <div class="footer-status">
                     <span class="status-indicator online"></span>
                     <span>All systems operational</span>
@@ -633,6 +693,7 @@
                             <option value="billing">Billing Question</option>
                             <option value="feature">Feature Request</option>
                             <option value="data">Data Quality Issue</option>
+                            <option value="access">Data Access Issue</option>
                             <option value="other">Other</option>
                         </select>
                     </div>
@@ -655,6 +716,17 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay for Data Access -->
+    <div class="loading-overlay hidden" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            <h3>Accessing Data Source</h3>
+            <p>Please wait while we redirect you...</p>
         </div>
     </div>
 
