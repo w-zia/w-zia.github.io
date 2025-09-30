@@ -1,4 +1,4 @@
-// NZTC Data Discovery Platform - Production Ready Application
+// NZTC Data Discovery Platform - Production Ready Application with Working Data Access
 
 // Configuration and Data
 const PLATFORM_CONFIG = {
@@ -11,7 +11,7 @@ const PLATFORM_CONFIG = {
     }
 };
 
-// Application Data
+// Application Data with Real URLs
 const APPLICATION_DATA = {
     subscriptionTiers: [
         {
@@ -40,22 +40,22 @@ const APPLICATION_DATA = {
             sources: "All", 
             support: "Dedicated", 
             price: "Contact us",
-            features: ["Unlimited API calls", "All data sources", "Dedicated support", "Custom integrations"]
+            features: ["Unlimited API calls", "All data sources", "Custom integrations", "Dedicated support"]
         }
     ],
     departments: [
-        {id: "alt-fuels", name: "Alt Fuels", color: "#FF6B35", icon: "fas fa-gas-pump", sources: 2},
-        {id: "ccus", name: "CCUS", color: "#4ECDC4", icon: "fas fa-industry", sources: 3},
-        {id: "digital", name: "Digital", color: "#45B7D1", icon: "fas fa-microchip", sources: 4},
-        {id: "electricity-tds", name: "Electricity TD&S", color: "#96CEB4", icon: "fas fa-bolt", sources: 3},
+        {id: "alt-fuels", name: "Alt Fuels", color: "#FF6B35", icon: "fas fa-gas-pump", sources: 1},
+        {id: "ccus", name: "CCUS", color: "#4ECDC4", icon: "fas fa-industry", sources: 2},
+        {id: "digital", name: "Digital", color: "#45B7D1", icon: "fas fa-microchip", sources: 3},
+        {id: "electricity-tds", name: "Electricity TD&S", color: "#96CEB4", icon: "fas fa-bolt", sources: 2},
         {id: "emissions", name: "Emissions Reduction", color: "#FFEAA7", icon: "fas fa-leaf", sources: 2},
-        {id: "fow", name: "FOW", color: "#74B9FF", icon: "fas fa-wind", sources: 3},
+        {id: "fow", name: "FOW", color: "#74B9FF", icon: "fas fa-wind", sources: 2},
         {id: "hydrogen", name: "Hydrogen", color: "#A29BFE", icon: "fas fa-atom", sources: 2},
         {id: "industrial-decarb", name: "Industrial Decarbonisation", color: "#FD79A8", icon: "fas fa-factory", sources: 2},
         {id: "maintenance-decomm", name: "Maintenance & Decomm", color: "#FDCB6E", icon: "fas fa-tools", sources: 3},
         {id: "ops", name: "Ops", color: "#6C5CE7", icon: "fas fa-cogs", sources: 3},
         {id: "production", name: "Production", color: "#00B894", icon: "fas fa-chart-line", sources: 4},
-        {id: "renewables", name: "Renewables", color: "#00CEC9", icon: "fas fa-solar-panel", sources: 5},
+        {id: "renewables", name: "Renewables", color: "#00CEC9", icon: "fas fa-solar-panel", sources: 6},
         {id: "wild-card", name: "Wild Card", color: "#E17055", icon: "fas fa-lightbulb", sources: 2}
     ],
     platformStats: {
@@ -67,86 +67,52 @@ const APPLICATION_DATA = {
         organizations: "120+"
     },
     recentActivity: [
-        {action: "API Access", source: "NESO Wind Data", time: "2 minutes ago", user: "Sarah Chen", icon: "fas fa-code"},
+        {action: "Data Access", source: "NESO Wind & Solar", time: "2 minutes ago", user: "Sarah Chen", icon: "fas fa-external-link-alt"},
         {action: "Data Export", source: "CCUS Pipeline", time: "15 minutes ago", user: "Mike Thompson", icon: "fas fa-download"},
-        {action: "New Integration", source: "Hydrogen Roadmap", time: "1 hour ago", user: "Alex Rodriguez", icon: "fas fa-plug"},
+        {action: "Data Access", source: "Hydrogen Roadmap", time: "1 hour ago", user: "Alex Rodriguez", icon: "fas fa-external-link-alt"},
         {action: "Quality Report", source: "Marine Weather", time: "2 hours ago", user: "Emma Wilson", icon: "fas fa-chart-bar"},
         {action: "API Key Created", source: "Dashboard", time: "3 hours ago", user: "Sarah Chen", icon: "fas fa-key"}
     ]
 };
 
-// Featured Data Sources
-const FEATURED_SOURCES = [
+// Complete Data Sources with Real URLs
+const DATA_SOURCES = [
     {
         id: "neso-wind-solar",
         name: "NESO Embedded Wind & Solar Forecast",
         provider: "National Energy System Operator",
-        description: "Real-time embedded wind & solar generation forecasts for Great Britain, updated every 30 minutes with 5-minute resolution data",
+        description: "Real-time embedded wind & solar generation forecasts for Great Britain (30-min updates)",
         departments: ["renewables", "production", "electricity-tds"],
         dataType: "Wind, Solar, Grid",
-        format: ["API", "CSV", "Real-time"],
-        accessType: "open",
+        format: "API, CSV, Real-time",
+        accessType: "Open",
+        url: "https://www.neso.energy/data-portal/embedded-wind-and-solar-forecasts",
+        isLive: true,
         quality: "high",
         freshness: "realtime",
+        subscriptionTier: "free",
         popularity: 98,
-        url: "https://www.neso.energy/data-portal/embedded-wind-and-solar-forecasts",
-        apiAvailable: true,
-        isLive: true,
-        lastUpdated: new Date().toISOString(),
-        sampleFields: "DATE_GMT, TIME_GMT, EMBEDDED_WIND_FORECAST, EMBEDDED_SOLAR_FORECAST, WIND_CAPACITY, SOLAR_CAPACITY",
-        updateFrequency: "Every 30 minutes",
-        dataSize: "~600 records per day",
-        tags: ["Real-time", "API", "Grid Data", "Forecasting"]
+        apiCalls: 150000,
+        sampleData: "Wind: 3,340 MW, Solar: 1,250 MW",
+        tags: ["Real-time", "API", "Grid Data"],
+        lastUpdated: new Date().toISOString()
     },
-    {
-        id: "ccsa-pipeline",
-        name: "UK CCUS Project Pipeline",
-        provider: "Carbon Capture & Storage Association",
-        description: "Complete CO2 capture project database with capacity and timeline data",
-        departments: ["ccus", "industrial-decarb"],
-        quality: "high",
-        freshness: "monthly",
-        popularity: 87,
-        apiCalls: 45000,
-        isLive: false,
-        accessType: "Open",
-        sampleData: "40+ projects, 25Mt CO2/year capacity",
-        tags: ["Projects", "Database", "Industrial"],
-        lastUpdated: "2024-12-01"
-    },
-    {
-        id: "hydrogen-roadmap",
-        name: "UK Hydrogen Production Roadmap",
-        provider: "UK Government DESNZ",
-        description: "10GW hydrogen production pathway with detailed project allocation",
-        departments: ["hydrogen"],
-        quality: "high",
-        freshness: "quarterly",
-        popularity: 92,
-        apiCalls: 67000,
-        isLive: false,
-        accessType: "Open",
-        sampleData: "10GW by 2030 target, project pipeline",
-        tags: ["Strategy", "Government", "Production"],
-        lastUpdated: "2024-12-16"
-    }
-];
-
-// Complete Data Sources
-const DATA_SOURCES = [
-    ...FEATURED_SOURCES,
     {
         id: "pv-live-solar",
         name: "PV_Live UK Solar Generation",
         provider: "University of Sheffield Solar",
-        description: "Live national solar PV generation for Great Britain updated every 5 minutes",
-        departments: ["renewables", "production"],
+        description: "Live national solar PV generation for Great Britain (5-min updates)",
+        departments: ["renewables", "production", "ops"],
+        dataType: "Solar",
+        format: "API, Real-time",
+        accessType: "Open",
+        url: "https://www.solar.sheffield.ac.uk/pvlive/",
+        isLive: true,
         quality: "high",
         freshness: "realtime",
+        subscriptionTier: "free",
         popularity: 85,
         apiCalls: 89000,
-        isLive: true,
-        accessType: "Open",
         sampleData: "Solar Generation: 2,150 MW",
         tags: ["Real-time", "Solar", "Generation"],
         lastUpdated: new Date().toISOString()
@@ -155,49 +121,61 @@ const DATA_SOURCES = [
         id: "marine-weather",
         name: "Open-Meteo Marine Weather",
         provider: "Open-Meteo",
-        description: "Live wave height and wind speed data for offshore energy applications",
+        description: "Live wave height & wind speed for offshore energy (hourly updates)",
         departments: ["renewables", "fow", "ops"],
-        quality: "medium",
+        dataType: "Marine, Weather",
+        format: "API, Real-time",
+        accessType: "Open",
+        url: "https://open-meteo.com",
+        isLive: true,
+        quality: "high",
         freshness: "realtime",
+        subscriptionTier: "free",
         popularity: 72,
         apiCalls: 34000,
-        isLive: true,
-        accessType: "Open",
         sampleData: "Wave Height: 2.1m, Wind: 8.5m/s",
         tags: ["Marine", "Weather", "Offshore"],
         lastUpdated: new Date().toISOString()
     },
     {
-        id: "ukwed",
-        name: "UK Wind Energy Database",
-        provider: "RenewableUK",
-        description: "Comprehensive database of operational wind projects ≥100kW capacity",
-        departments: ["renewables", "production"],
-        quality: "high",
-        freshness: "monthly",
-        popularity: 89,
-        apiCalls: 78000,
-        isLive: false,
+        id: "afdc-alt-fuels",
+        name: "Alternative Fuels Data Center",
+        provider: "US NREL",
+        description: "Comprehensive alternative fuel station locations and fuel types data",
+        departments: ["alt-fuels"],
+        dataType: "Alternative Fuels",
+        format: "API, Database",
         accessType: "Open",
-        sampleData: "28.8GW capacity, 11,000+ turbines",
-        tags: ["Wind", "Projects", "Database"],
-        lastUpdated: "2024-12-31"
+        url: "https://afdc.energy.gov",
+        lastUpdated: "2024-12-01",
+        isLive: false,
+        quality: "high",
+        freshness: "daily",
+        subscriptionTier: "free",
+        popularity: 67,
+        apiCalls: 25000,
+        sampleData: "50,000+ stations, multiple fuel types",
+        tags: ["Alternative Fuels", "Stations", "Database"]
     },
     {
-        id: "repd",
-        name: "Renewable Energy Planning Database",
-        provider: "UK Government DESNZ",
-        description: "UK renewable electricity projects ≥150kW through planning system",
-        departments: ["renewables", "production"],
+        id: "ccsa-pipeline",
+        name: "UK Carbon Capture Project Pipeline",
+        provider: "Carbon Capture & Storage Association",
+        description: "Interactive map of UK CO2 capture projects with capacity data",
+        departments: ["ccus", "industrial-decarb"],
+        dataType: "CCUS Projects",
+        format: "Interactive Map, Data",
+        accessType: "Open",
+        url: "https://www.ccsassociation.org/capture-projects/",
+        lastUpdated: "2024-10-01",
+        isLive: false,
         quality: "high",
         freshness: "monthly",
-        popularity: 91,
-        apiCalls: 95000,
-        isLive: false,
-        accessType: "Open",
-        sampleData: "150GW pipeline capacity",
-        tags: ["Planning", "Pipeline", "Government"],
-        lastUpdated: "2024-08-19"
+        subscriptionTier: "free",
+        popularity: 87,
+        apiCalls: 45000,
+        sampleData: "40+ projects, 25Mt CO2/year capacity",
+        tags: ["Projects", "Database", "Industrial"]
     },
     {
         id: "bgs-co2-storage",
@@ -205,15 +183,39 @@ const DATA_SOURCES = [
         provider: "British Geological Survey",
         description: "70+ billion tonnes UK seabed CO2 storage potential database",
         departments: ["ccus"],
+        dataType: "Storage Capacity",
+        format: "Database, Maps",
+        accessType: "Open",
+        url: "https://www.bgs.ac.uk/geology-projects/carbon-capture-and-storage/",
+        lastUpdated: "2024-09-30",
+        isLive: false,
         quality: "high",
         freshness: "quarterly",
+        subscriptionTier: "free",
         popularity: 76,
         apiCalls: 23000,
-        isLive: false,
-        accessType: "Open",
         sampleData: "78Gt storage capacity, geological data",
-        tags: ["Storage", "Geological", "Database"],
-        lastUpdated: "2024-09-30"
+        tags: ["Storage", "Geological", "Database"]
+    },
+    {
+        id: "energy-digitalisation",
+        name: "Energy System Digitalisation Strategy",
+        provider: "Ofgem",
+        description: "Digital transformation data for UK energy system modernisation",
+        departments: ["digital"],
+        dataType: "Digital Strategy",
+        format: "Policy Data, Reports",
+        accessType: "Open",
+        url: "https://www.ofgem.gov.uk/energy-policy-and-regulation/policy-and-regulatory-programmes/energy-system-digitalisation",
+        lastUpdated: "2024-11-15",
+        isLive: false,
+        quality: "high",
+        freshness: "quarterly",
+        subscriptionTier: "free",
+        popularity: 59,
+        apiCalls: 18000,
+        sampleData: "Digital transformation roadmap",
+        tags: ["Digital", "Strategy", "Policy"]
     },
     {
         id: "virtual-energy-system",
@@ -221,15 +223,79 @@ const DATA_SOURCES = [
         provider: "National Grid ESO",
         description: "Digital twin technology for GB energy system integration",
         departments: ["digital", "electricity-tds"],
+        dataType: "Digital Twin, System Data",
+        format: "Platform, API",
+        accessType: "Restricted",
+        url: "https://www.nationalgrideso.com/future-energy/projects/virtual-energy-system",
+        lastUpdated: "2024-12-10",
+        isLive: false,
         quality: "high",
-        freshness: "daily",
+        freshness: "weekly",
+        subscriptionTier: "professional",
         popularity: 83,
         apiCalls: 56000,
-        isLive: false,
-        accessType: "Restricted",
         sampleData: "Real-time system modeling",
-        tags: ["Digital Twin", "System", "Grid"],
-        lastUpdated: "2024-12-10"
+        tags: ["Digital Twin", "System", "Grid"]
+    },
+    {
+        id: "ena-connections",
+        name: "Energy Networks Association Database",
+        provider: "Energy Networks Association",
+        description: "Transmission & distribution connections data for GB networks",
+        departments: ["electricity-tds"],
+        dataType: "Network Connections",
+        format: "Dashboard, Data",
+        accessType: "Open",
+        url: "https://www.energynetworks.org/industry/connecting-to-the-networks/connections-data",
+        lastUpdated: "2024-10-07",
+        isLive: false,
+        quality: "high",
+        freshness: "monthly",
+        subscriptionTier: "free",
+        popularity: 64,
+        apiCalls: 21000,
+        sampleData: "Network capacity, connections queue",
+        tags: ["Network", "Connections", "Grid"]
+    },
+    {
+        id: "industrial-decarb-challenge",
+        name: "Industrial Decarbonisation Challenge",
+        provider: "UKRI Innovate UK",
+        description: "£210M+ programme data for UK industrial cluster decarbonisation",
+        departments: ["industrial-decarb", "emissions"],
+        dataType: "Industrial Emissions",
+        format: "Programme Data, Reports",
+        accessType: "Open",
+        url: "https://www.ukri.org/what-we-do/browse-our-areas-of-investment-and-support/industrial-decarbonisation/",
+        lastUpdated: "2025-01-30",
+        isLive: false,
+        quality: "high",
+        freshness: "quarterly",
+        subscriptionTier: "free",
+        popularity: 71,
+        apiCalls: 28000,
+        sampleData: "£210M+ funding, cluster projects",
+        tags: ["Industrial", "Funding", "Decarbonisation"]
+    },
+    {
+        id: "seventh-carbon-budget",
+        name: "Seventh Carbon Budget Data",
+        provider: "Climate Change Committee",
+        description: "UK emissions data and net zero pathway analysis",
+        departments: ["emissions"],
+        dataType: "Emissions Data",
+        format: "Reports, Statistics",
+        accessType: "Open",
+        url: "https://www.theccc.org.uk/publication/the-seventh-carbon-budget/",
+        lastUpdated: "2025-05-20",
+        isLive: false,
+        quality: "high",
+        freshness: "quarterly",
+        subscriptionTier: "free",
+        popularity: 78,
+        apiCalls: 32000,
+        sampleData: "Carbon budgets, pathway analysis",
+        tags: ["Emissions", "Budget", "Policy"]
     },
     {
         id: "fow-coe",
@@ -237,15 +303,59 @@ const DATA_SOURCES = [
         provider: "ORE Catapult",
         description: "FOW technology development and cost reduction data",
         departments: ["fow"],
+        dataType: "FOW Technology",
+        format: "Research Data, Reports",
+        accessType: "Open",
+        url: "https://fowcoe.co.uk",
+        lastUpdated: "2024-12-01",
+        isLive: false,
         quality: "high",
         freshness: "monthly",
+        subscriptionTier: "free",
         popularity: 74,
         apiCalls: 31000,
-        isLive: false,
-        accessType: "Open",
         sampleData: "£100/MWh LCOE target",
-        tags: ["FOW", "Technology", "Research"],
-        lastUpdated: "2024-12-01"
+        tags: ["FOW", "Technology", "Research"]
+    },
+    {
+        id: "nof-offshore-wind",
+        name: "NOF Offshore Wind Projects Database",
+        provider: "NOF Energy",
+        description: "1800+ existing and planned offshore wind projects globally",
+        departments: ["fow", "renewables"],
+        dataType: "Project Pipeline",
+        format: "Database, Analytics",
+        accessType: "Membership",
+        url: "https://www.nof.co.uk/services-and-benefits/offshore-wind-projects-database/",
+        lastUpdated: "2024-12-31",
+        isLive: false,
+        quality: "high",
+        freshness: "weekly",
+        subscriptionTier: "professional",
+        popularity: 82,
+        apiCalls: 41000,
+        sampleData: "1800+ projects, global pipeline",
+        tags: ["Offshore Wind", "Projects", "Global"]
+    },
+    {
+        id: "uk-hydrogen-roadmap",
+        name: "UK Hydrogen Production Roadmap",
+        provider: "UK Government DESNZ",
+        description: "10GW hydrogen production target with project allocation data",
+        departments: ["hydrogen"],
+        dataType: "Hydrogen Production",
+        format: "Strategy Data, Forecasts",
+        accessType: "Open",
+        url: "https://www.gov.uk/government/publications/hydrogen-production-delivery-roadmap/hydrogen-production-delivery-roadmap",
+        lastUpdated: "2024-12-16",
+        isLive: false,
+        quality: "high",
+        freshness: "quarterly",
+        subscriptionTier: "free",
+        popularity: 92,
+        apiCalls: 67000,
+        sampleData: "10GW by 2030 target, project pipeline",
+        tags: ["Strategy", "Government", "Production"]
     },
     {
         id: "hydrogen-uk-database",
@@ -253,31 +363,19 @@ const DATA_SOURCES = [
         provider: "Hydrogen UK",
         description: "Economic impact assessment for hydrogen sector to 2030",
         departments: ["hydrogen"],
-        quality: "medium",
+        dataType: "Economic Analysis",
+        format: "Reports, Statistics",
+        accessType: "Open",
+        url: "https://hydrogen-uk.org/",
+        lastUpdated: "2024-04-01",
+        isLive: false,
+        quality: "high",
         freshness: "quarterly",
+        subscriptionTier: "free",
         popularity: 68,
         apiCalls: 19000,
-        isLive: false,
-        accessType: "Open",
         sampleData: "100,000 jobs, £18B GVA",
-        tags: ["Economic", "Impact", "Analysis"],
-        lastUpdated: "2024-04-01"
-    },
-    {
-        id: "steel-industry-net-zero",
-        name: "UK Steel Industry Net Zero Data",
-        provider: "UK Steel Association",
-        description: "Steel sector decarbonisation roadmap and project data",
-        departments: ["industrial-decarb"],
-        quality: "medium",
-        freshness: "quarterly",
-        popularity: 61,
-        apiCalls: 15000,
-        isLive: false,
-        accessType: "Mixed",
-        sampleData: "7Mt production, CCUS projects",
-        tags: ["Steel", "Decarbonisation", "Industry"],
-        lastUpdated: "2024-09-15"
+        tags: ["Economic", "Impact", "Analysis"]
     },
     {
         id: "oeuk-decommissioning",
@@ -285,31 +383,119 @@ const DATA_SOURCES = [
         provider: "Offshore Energies UK",
         description: "£24.6B decommissioning programme with detailed activity data",
         departments: ["maintenance-decomm"],
+        dataType: "Decommissioning",
+        format: "Reports, Dashboard",
+        accessType: "Membership",
+        url: "https://oeuk.org.uk/product/decommissioning-report-2024/",
+        lastUpdated: "2025-02-23",
+        isLive: false,
         quality: "high",
         freshness: "quarterly",
+        subscriptionTier: "professional",
         popularity: 59,
         apiCalls: 12000,
-        isLive: false,
-        accessType: "Membership",
         sampleData: "£24.6B programme, 470 installations",
-        tags: ["Decommissioning", "Offshore", "Projects"],
-        lastUpdated: "2024-02-23"
+        tags: ["Decommissioning", "Offshore", "Projects"]
     },
     {
-        id: "predictive-maintenance",
-        name: "Renewable Energy Predictive Maintenance",
-        provider: "Multiple Industry Sources",
-        description: "AI and IoT-powered maintenance strategies for renewable assets",
-        departments: ["ops", "digital"],
-        quality: "medium",
-        freshness: "monthly",
-        popularity: 71,
-        apiCalls: 28000,
+        id: "nsta-decomm-dashboard",
+        name: "NSTA Decommissioning Data Dashboard",
+        provider: "North Sea Transition Authority",
+        description: "Interactive dashboard for 18 operators' decommissioning plans",
+        departments: ["maintenance-decomm"],
+        dataType: "Decommissioning Plans",
+        format: "Interactive Dashboard",
+        accessType: "Open",
+        url: "https://www.nstauthority.co.uk/regulatory-information/decommissioning/decommissioning-data-visibility-dashboard/",
+        lastUpdated: "2025-06-30",
         isLive: false,
-        accessType: "Mixed",
-        sampleData: "20% cost reduction potential",
-        tags: ["Predictive", "Maintenance", "AI"],
-        lastUpdated: "2024-07-31"
+        quality: "high",
+        freshness: "monthly",
+        subscriptionTier: "free",
+        popularity: 55,
+        apiCalls: 14000,
+        sampleData: "18 operators, decommissioning plans",
+        tags: ["Decommissioning", "Regulatory", "Dashboard"]
+    },
+    {
+        id: "renewable-om-analysis",
+        name: "NREL Solar O&M Analysis",
+        provider: "National Renewable Energy Laboratory",
+        description: "Comprehensive solar system operations and maintenance data",
+        departments: ["maintenance-decomm", "renewables", "ops"],
+        dataType: "O&M Analysis",
+        format: "Data, Models, Analysis",
+        accessType: "Open",
+        url: "https://www.nrel.gov/solar/market-research-analysis/solar-system-operations-maintenance-analysis",
+        lastUpdated: "2025-04-02",
+        isLive: false,
+        quality: "high",
+        freshness: "quarterly",
+        subscriptionTier: "free",
+        popularity: 66,
+        apiCalls: 22000,
+        sampleData: "O&M cost analysis, best practices",
+        tags: ["O&M", "Solar", "Analysis"]
+    },
+    {
+        id: "ukwed",
+        name: "UK Wind Energy Database",
+        provider: "RenewableUK",
+        description: "Comprehensive database of operational wind projects ≥100kW",
+        departments: ["renewables", "production"],
+        dataType: "Wind Projects",
+        format: "Database, Statistics",
+        accessType: "Open",
+        url: "https://www.renewableuk.com/energypulse/ukwed/",
+        lastUpdated: "2024-12-31",
+        isLive: false,
+        quality: "high",
+        freshness: "monthly",
+        subscriptionTier: "free",
+        popularity: 89,
+        apiCalls: 78000,
+        sampleData: "28.8GW capacity, 11,000+ turbines",
+        tags: ["Wind", "Projects", "Database"]
+    },
+    {
+        id: "repd",
+        name: "Renewable Energy Planning Database",
+        provider: "UK Government DESNZ",
+        description: "UK renewable electricity projects ≥150kW through planning",
+        departments: ["renewables", "production"],
+        dataType: "Planning Data",
+        format: "CSV, Excel",
+        accessType: "Open",
+        url: "https://www.gov.uk/government/publications/renewable-energy-planning-database-monthly-extract",
+        lastUpdated: "2025-08-19",
+        isLive: false,
+        quality: "high",
+        freshness: "monthly",
+        subscriptionTier: "free",
+        popularity: 91,
+        apiCalls: 95000,
+        sampleData: "150GW pipeline capacity",
+        tags: ["Planning", "Pipeline", "Government"]
+    },
+    {
+        id: "energy-catapult-data",
+        name: "Energy Systems Catapult Open Data",
+        provider: "Energy Systems Catapult",
+        description: "Innovation project data across homes, transport, industry",
+        departments: ["wild-card", "digital"],
+        dataType: "Innovation Data",
+        format: "CSV, API, Reports",
+        accessType: "Open",
+        url: "https://es.catapult.org.uk/tools-and-labs/open-data/",
+        lastUpdated: "2025-05-22",
+        isLive: false,
+        quality: "high",
+        freshness: "monthly",
+        subscriptionTier: "free",
+        popularity: 61,
+        apiCalls: 17000,
+        sampleData: "Innovation projects, energy systems",
+        tags: ["Innovation", "Open Data", "Research"]
     },
     {
         id: "future-energy-scenarios",
@@ -317,15 +503,19 @@ const DATA_SOURCES = [
         provider: "National Energy System Operator",
         description: "Long-term energy system scenarios and pathway analysis",
         departments: ["wild-card", "production"],
+        dataType: "Scenario Analysis",
+        format: "Data, Models, Forecasts",
+        accessType: "Open",
+        url: "https://www.neso.energy/future-energy/future-energy-scenarios",
+        lastUpdated: "2024-07-15",
+        isLive: false,
         quality: "high",
         freshness: "quarterly",
+        subscriptionTier: "free",
         popularity: 88,
         apiCalls: 52000,
-        isLive: false,
-        accessType: "Open",
         sampleData: "4 scenarios to 2050",
-        tags: ["Scenarios", "Forecasting", "Strategy"],
-        lastUpdated: "2024-07-15"
+        tags: ["Scenarios", "Forecasting", "Strategy"]
     }
 ];
 
@@ -335,9 +525,14 @@ let currentUser = {
     name: 'Sarah Chen',
     email: 'sarah.chen@nztc.com',
     subscription: 'professional',
-    apiUsage: 8420,
+    apiUsage: 7500,
     apiLimit: 10000,
     savedSources: 12,
+    recentlyAccessed: [
+        {id: "neso-wind-solar", timestamp: "2025-09-26T14:30:00Z", name: "NESO Wind & Solar"},
+        {id: "ccsa-pipeline", timestamp: "2025-09-26T14:15:00Z", name: "UK CCUS Pipeline"},
+        {id: "uk-hydrogen-roadmap", timestamp: "2025-09-26T13:45:00Z", name: "Hydrogen Roadmap"}
+    ],
     apiKeys: [
         {id: 'key-1', name: 'Production API', key: 'nztc_live_****7329', created: '2024-12-01', lastUsed: '2 hours ago'},
         {id: 'key-2', name: 'Development API', key: 'nztc_dev_****9156', created: '2024-11-15', lastUsed: '1 day ago'}
@@ -571,6 +766,7 @@ function showPage(pageId) {
             case 'dashboard':
                 setTimeout(() => {
                     updateDashboardMetrics();
+                    renderRecentActivity();
                 }, 100);
                 break;
         }
@@ -632,8 +828,12 @@ function initializeHomePageData() {
 function renderFeaturedSources() {
     if (!featuredGrid) return;
     
+    const featuredSources = DATA_SOURCES.filter(source => 
+        ['neso-wind-solar', 'ccsa-pipeline', 'uk-hydrogen-roadmap'].includes(source.id)
+    );
+    
     featuredGrid.innerHTML = '';
-    FEATURED_SOURCES.forEach(source => {
+    featuredSources.forEach(source => {
         const card = createFeaturedSourceCard(source);
         featuredGrid.appendChild(card);
     });
@@ -682,8 +882,11 @@ function createFeaturedSourceCard(source) {
             <button class="btn btn--primary btn--sm" onclick="viewSourceDetails('${source.id}')">
                 View Details
             </button>
-            <button class="btn btn--outline btn--sm" onclick="accessSourceData('${source.id}')">
-                Access Data
+            <button class="btn btn--outline btn--sm access-data-btn" 
+                    onclick="accessSourceData('${source.id}')" 
+                    title="Access ${source.name} - Opens in new tab"
+                    data-source-id="${source.id}">
+                <i class="fas fa-external-link-alt"></i> Access Data
             </button>
         </div>
     `;
@@ -917,6 +1120,10 @@ function createBrowseSourceCard(source) {
     
     const freshnessIcon = getFreshnessIcon(source.freshness);
     const accessBadge = getAccessBadge(source.accessType);
+    const requiresSubscription = source.subscriptionTier !== 'free';
+    const hasAccess = !requiresSubscription || 
+                     (source.subscriptionTier === 'professional' && currentUser.subscription !== 'free') ||
+                     (source.subscriptionTier === 'enterprise' && currentUser.subscription === 'enterprise');
     
     card.innerHTML = `
         <div class="card-header">
@@ -928,6 +1135,7 @@ function createBrowseSourceCard(source) {
                 <span class="data-quality ${source.quality}">${source.quality.charAt(0).toUpperCase() + source.quality.slice(1)} Quality</span>
                 ${source.isLive ? '<span class="live-badge"><i class="fas fa-circle"></i> LIVE</span>' : ''}
                 ${accessBadge}
+                ${requiresSubscription ? `<span class="status status--warning">${source.subscriptionTier.charAt(0).toUpperCase() + source.subscriptionTier.slice(1)}</span>` : ''}
             </div>
         </div>
         
@@ -941,7 +1149,7 @@ function createBrowseSourceCard(source) {
         <div class="card-meta">
             <div class="meta-item">
                 <span class="meta-label">Update Frequency</span>
-                <span class="meta-value">${freshnessIcon} ${source.freshness.charAt(0).toUpperCase() + source.freshness.slice(1)}</span>
+                <span class="meta-value">${source.freshness.charAt(0).toUpperCase() + source.freshness.slice(1)}</span>
             </div>
             <div class="meta-item">
                 <span class="meta-label">Popularity</span>
@@ -953,8 +1161,23 @@ function createBrowseSourceCard(source) {
             <button class="btn btn--primary btn--sm" onclick="viewSourceDetails('${source.id}')">
                 View Details
             </button>
-            <button class="btn btn--outline btn--sm" onclick="accessSourceData('${source.id}')">
-                ${source.accessType === 'Open' ? 'Access Data' : 'Request Access'}
+            ${hasAccess ? 
+                `<button class="btn btn--outline btn--sm access-data-btn" 
+                         onclick="accessSourceData('${source.id}')" 
+                         title="Access ${source.name} - Opens in new tab"
+                         data-source-id="${source.id}">
+                    <i class="fas fa-external-link-alt"></i> Access Data
+                 </button>` :
+                `<button class="btn btn--secondary btn--sm" 
+                         onclick="showUpgradePrompt('${source.subscriptionTier}', '${source.name}')"
+                         title="Upgrade required to access this data source">
+                    <i class="fas fa-lock"></i> Upgrade Required
+                 </button>`
+            }
+            <button class="btn btn--outline btn--sm" 
+                    onclick="copyDataSourceLink('${source.id}')"
+                    title="Copy link to this data source">
+                <i class="fas fa-link"></i>
             </button>
         </div>
     `;
@@ -1016,6 +1239,7 @@ function handleExportResults() {
     const exportData = filteredSources.map(source => ({
         name: source.name,
         provider: source.provider,
+        url: source.url,
         departments: source.departments.join(', '),
         quality: source.quality,
         freshness: source.freshness,
@@ -1058,6 +1282,7 @@ function downloadCSV(csv, filename) {
 function initializeDashboardData() {
     renderRecentActivity();
     renderApiKeys();
+    renderRecentlyAccessed();
     updateDashboardMetrics();
 }
 
@@ -1081,6 +1306,56 @@ function renderRecentActivity() {
             <div class="activity-time">${activity.time}</div>
         `;
         activityList.appendChild(item);
+    });
+}
+
+function renderRecentlyAccessed() {
+    const recentlyAccessedSection = document.querySelector('.recently-accessed-section');
+    if (recentlyAccessedSection || !currentUser.recentlyAccessed.length) return;
+    
+    // Create recently accessed section
+    const section = document.createElement('div');
+    section.className = 'dashboard-section recently-accessed-section';
+    section.innerHTML = `
+        <h2>Recently Accessed Data Sources</h2>
+        <div class="recently-accessed-list" id="recently-accessed-list"></div>
+    `;
+    
+    // Insert after dashboard cards
+    const dashboardCards = document.querySelector('.dashboard-cards');
+    if (dashboardCards) {
+        dashboardCards.parentNode.insertBefore(section, dashboardCards.nextSibling);
+    }
+    
+    updateRecentlyAccessedList();
+}
+
+function updateRecentlyAccessedList() {
+    const recentlyAccessedList = document.getElementById('recently-accessed-list');
+    if (!recentlyAccessedList) return;
+    
+    recentlyAccessedList.innerHTML = '';
+    currentUser.recentlyAccessed.slice(0, 5).forEach(access => {
+        const source = DATA_SOURCES.find(s => s.id === access.id);
+        if (!source) return;
+        
+        const item = document.createElement('div');
+        item.className = 'activity-item';
+        item.innerHTML = `
+            <div class="activity-info">
+                <div class="activity-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="activity-details">
+                    <h4>${source.name}</h4>
+                    <p>Last accessed: ${formatTimestamp(access.timestamp)}</p>
+                </div>
+            </div>
+            <button class="btn btn--outline btn--sm" onclick="accessSourceData('${source.id}')">
+                <i class="fas fa-external-link-alt"></i> Access Again
+            </button>
+        `;
+        recentlyAccessedList.appendChild(item);
     });
 }
 
@@ -1120,6 +1395,12 @@ function updateDashboardMetrics() {
         const percentage = (currentUser.apiUsage / currentUser.apiLimit) * 100;
         progressFill.style.width = `${percentage}%`;
     }
+    
+    // Update API usage numbers
+    const metricValue = document.querySelector('.card-metric .metric-value');
+    const metricUnit = document.querySelector('.card-metric .metric-unit');
+    if (metricValue) metricValue.textContent = currentUser.apiUsage.toLocaleString();
+    if (metricUnit) metricUnit.textContent = `/ ${currentUser.apiLimit.toLocaleString()} calls`;
 }
 
 // Support Page
@@ -1221,6 +1502,8 @@ function handleCreateApiKey() {
 function copyApiKey(key) {
     navigator.clipboard.writeText(key.replace('****', 'prod')).then(() => {
         showNotification('API key copied to clipboard!', 'success');
+    }).catch(() => {
+        showNotification('Failed to copy API key. Please copy manually.', 'error');
     });
 }
 
@@ -1247,13 +1530,14 @@ function generateApiKey() {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
-// Source Actions
+// Source Actions - Updated with Real Data Access
 function viewSourceDetails(sourceId) {
     const source = DATA_SOURCES.find(s => s.id === sourceId);
     if (!source) return;
     
     let detailsText = `${source.name}\n\n`;
     detailsText += `Provider: ${source.provider}\n`;
+    detailsText += `URL: ${source.url}\n`;
     detailsText += `Departments: ${source.departments.map(deptId => {
         const dept = APPLICATION_DATA.departments.find(d => d.id === deptId);
         return dept ? dept.name : deptId;
@@ -1261,13 +1545,15 @@ function viewSourceDetails(sourceId) {
     detailsText += `Quality: ${source.quality.charAt(0).toUpperCase() + source.quality.slice(1)}\n`;
     detailsText += `Update Frequency: ${source.freshness.charAt(0).toUpperCase() + source.freshness.slice(1)}\n`;
     detailsText += `Access Type: ${source.accessType}\n`;
+    detailsText += `Format: ${source.format}\n`;
+    detailsText += `Subscription Required: ${source.subscriptionTier.charAt(0).toUpperCase() + source.subscriptionTier.slice(1)}\n`;
     detailsText += `Popularity: ${source.popularity}%\n`;
     
     if (source.isLive) {
         detailsText += `\nLIVE DATA:\n${source.sampleData}\n`;
     }
     
-    detailsText += `\nThis would typically open a comprehensive detail page with API documentation, sample data previews, integration guides, and usage examples.`;
+    detailsText += `\nClick "Access Data" to visit the actual data source at:\n${source.url}`;
     
     alert(detailsText);
 }
@@ -1276,10 +1562,144 @@ function accessSourceData(sourceId) {
     const source = DATA_SOURCES.find(s => s.id === sourceId);
     if (!source) return;
     
-    if (source.accessType === 'Open') {
-        alert(`Accessing open data source: ${source.name}\n\nThis would typically:\n- Redirect to the API endpoint\n- Provide sample code\n- Show integration examples\n- Track usage statistics`);
+    // Check subscription access
+    const requiresSubscription = source.subscriptionTier !== 'free';
+    const hasAccess = !requiresSubscription || 
+                     (source.subscriptionTier === 'professional' && currentUser.subscription !== 'free') ||
+                     (source.subscriptionTier === 'enterprise' && currentUser.subscription === 'enterprise');
+    
+    if (!hasAccess) {
+        showUpgradePrompt(source.subscriptionTier, source.name);
+        return;
+    }
+    
+    // Show leaving notification and confirmation
+    const shouldProceed = confirm(
+        `You are about to leave the NZTC Platform to access:\n\n` +
+        `${source.name}\n` +
+        `Provider: ${source.provider}\n` +
+        `URL: ${source.url}\n\n` +
+        `This will open in a new tab. Continue?`
+    );
+    
+    if (!shouldProceed) return;
+    
+    // Show loading state
+    const accessBtn = document.querySelector(`[data-source-id="${sourceId}"]`);
+    if (accessBtn) {
+        const originalContent = accessBtn.innerHTML;
+        accessBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Accessing...';
+        accessBtn.disabled = true;
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            accessBtn.innerHTML = originalContent;
+            accessBtn.disabled = false;
+        }, 2000);
+    }
+    
+    // Track access
+    trackDataSourceAccess(sourceId, source.name);
+    
+    // Update API usage (simulate)
+    currentUser.apiUsage += 1;
+    updateDashboardMetrics();
+    
+    // Open the actual data source
+    window.open(source.url, '_blank', 'noopener,noreferrer');
+    
+    // Show success notification
+    setTimeout(() => {
+        showNotification(`Successfully accessed ${source.name}`, 'success');
+    }, 500);
+}
+
+function trackDataSourceAccess(sourceId, sourceName) {
+    // Add to recently accessed
+    const existingIndex = currentUser.recentlyAccessed.findIndex(item => item.id === sourceId);
+    
+    if (existingIndex !== -1) {
+        // Update existing entry
+        currentUser.recentlyAccessed[existingIndex].timestamp = new Date().toISOString();
     } else {
-        alert(`Access requested for: ${source.name}\n\nThis would typically:\n- Check your subscription level\n- Generate API access tokens\n- Provide integration documentation\n- Set up usage monitoring`);
+        // Add new entry
+        currentUser.recentlyAccessed.unshift({
+            id: sourceId,
+            name: sourceName,
+            timestamp: new Date().toISOString()
+        });
+    }
+    
+    // Keep only last 10 accessed items
+    currentUser.recentlyAccessed = currentUser.recentlyAccessed.slice(0, 10);
+    
+    // Add to recent activity
+    APPLICATION_DATA.recentActivity.unshift({
+        action: "Data Access",
+        source: sourceName,
+        time: "Just now",
+        user: currentUser.name,
+        icon: "fas fa-external-link-alt"
+    });
+    
+    // Keep only last 10 activities
+    APPLICATION_DATA.recentActivity = APPLICATION_DATA.recentActivity.slice(0, 10);
+    
+    // Update dashboard if we're on that page
+    if (currentPage === 'dashboard') {
+        renderRecentActivity();
+        updateRecentlyAccessedList();
+    }
+}
+
+function showUpgradePrompt(requiredTier, sourceName) {
+    const tierNames = {
+        professional: 'Professional',
+        enterprise: 'Enterprise'
+    };
+    
+    const message = `Access to "${sourceName}" requires a ${tierNames[requiredTier]} subscription.\n\n` +
+                   `Your current plan: ${currentUser.subscription.charAt(0).toUpperCase() + currentUser.subscription.slice(1)}\n` +
+                   `Required plan: ${tierNames[requiredTier]}\n\n` +
+                   `Would you like to view upgrade options?`;
+    
+    if (confirm(message)) {
+        showPage('home');
+        // Scroll to pricing section
+        setTimeout(() => {
+            const pricingSection = document.querySelector('.subscription-tiers');
+            if (pricingSection) {
+                pricingSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 300);
+    }
+}
+
+function copyDataSourceLink(sourceId) {
+    const source = DATA_SOURCES.find(s => s.id === sourceId);
+    if (!source) return;
+    
+    const linkText = `${source.name} - ${source.url}`;
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(source.url).then(() => {
+            showNotification('Data source link copied to clipboard!', 'success');
+        }).catch(() => {
+            showNotification('Failed to copy link. Please copy manually.', 'error');
+        });
+    } else {
+        // Fallback for browsers without clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = source.url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showNotification('Data source link copied to clipboard!', 'success');
+        } catch (err) {
+            showNotification('Failed to copy link. Please copy manually.', 'error');
+        }
+        document.body.removeChild(textArea);
     }
 }
 
@@ -1315,6 +1735,22 @@ function getAccessBadge(accessType) {
     return `<span class="status status--${badgeClass}">${accessType}</span>`;
 }
 
+function formatTimestamp(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
+    
+    return date.toLocaleDateString();
+}
+
 function showNotification(message, type = 'info') {
     // Create notification element
     const notification = document.createElement('div');
@@ -1332,6 +1768,7 @@ function showNotification(message, type = 'info') {
         max-width: 400px;
         font-size: 14px;
         color: var(--color-text);
+        animation: slideIn 0.3s ease-out;
     `;
     
     if (type === 'success') {
@@ -1354,7 +1791,12 @@ function showNotification(message, type = 'info') {
     // Remove after 5 seconds
     setTimeout(() => {
         if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
+            notification.style.animation = 'slideOut 0.3s ease-in';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
         }
     }, 5000);
 }
@@ -1381,9 +1823,11 @@ window.NZTCPlatform = {
             }
         }, 200);
     },
+    accessDataSource: accessSourceData,
     getCurrentUser: () => currentUser,
     getDataSources: () => DATA_SOURCES,
-    getDepartments: () => APPLICATION_DATA.departments
+    getDepartments: () => APPLICATION_DATA.departments,
+    getRecentlyAccessed: () => currentUser.recentlyAccessed
 };
 
-console.log('NZTC Data Discovery Platform loaded successfully');
+console.log('NZTC Data Discovery Platform loaded successfully with working data access');
