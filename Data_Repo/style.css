@@ -738,7 +738,7 @@ select.form-control {
 }
 
 /* END PERPLEXITY DESIGN SYSTEM */
-/* NZTC Data Discovery Platform - Production Ready Styles */
+/* NZTC Data Discovery Platform - Production Ready Styles with Working Data Access */
 
 /* Page Layout */
 .page-content {
@@ -1043,6 +1043,7 @@ select.form-control {
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
+  margin-bottom: var(--space-16);
 }
 
 .metric {
@@ -1060,6 +1061,10 @@ select.form-control {
 .metric-label {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
+}
+
+.showcase-actions {
+  margin-top: var(--space-16);
 }
 
 /* Section Layouts */
@@ -1386,6 +1391,27 @@ select.form-control {
 .card-actions {
   display: flex;
   gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.access-data-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.access-data-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.access-data-btn:active {
+  transform: translateY(0);
+}
+
+.access-data-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Pagination */
@@ -1497,6 +1523,12 @@ select.form-control {
 
 /* Activity List */
 .activity-list {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-card-border);
+}
+
+.recently-accessed-list {
   background-color: var(--color-surface);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-card-border);
@@ -1689,6 +1721,59 @@ select.form-control {
 
 .rate-limits-table tr:last-child td {
   border-bottom: none;
+}
+
+/* External Links Grid */
+.external-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-24);
+  margin-top: var(--space-24);
+}
+
+.external-link-card {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-20);
+  border: 1px solid var(--color-card-border);
+}
+
+.external-link-card h4 {
+  margin: 0 0 var(--space-16) 0;
+  color: var(--color-primary);
+}
+
+.external-link-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.external-link-card li {
+  margin-bottom: var(--space-8);
+}
+
+.external-link-card a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-8) var(--space-12);
+  background-color: var(--color-background);
+  border-radius: var(--radius-base);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+
+.external-link-card a:hover {
+  background-color: var(--color-secondary);
+  color: var(--color-primary);
+  transform: translateX(4px);
+}
+
+.external-link-card a i {
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
 }
 
 /* Documentation Layout */
@@ -1974,6 +2059,48 @@ select.form-control {
   margin-top: var(--space-20);
 }
 
+/* Loading Overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-overlay.hidden {
+  display: none;
+}
+
+.loading-content {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-32);
+  text-align: center;
+  max-width: 400px;
+  box-shadow: var(--shadow-lg);
+}
+
+.loading-spinner {
+  font-size: var(--font-size-4xl);
+  color: var(--color-primary);
+  margin-bottom: var(--space-16);
+}
+
+.loading-content h3 {
+  margin: 0 0 var(--space-8) 0;
+}
+
+.loading-content p {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
 /* Footer */
 .footer {
   background-color: var(--color-surface);
@@ -2146,6 +2273,14 @@ select.form-control {
   .modal-actions {
     flex-direction: column;
   }
+
+  .card-actions {
+    flex-direction: column;
+  }
+
+  .external-links-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {
@@ -2169,10 +2304,6 @@ select.form-control {
   .browse-grid {
     grid-template-columns: 1fr;
   }
-
-  .card-actions {
-    flex-direction: column;
-  }
 }
 
 /* Animations */
@@ -2189,6 +2320,28 @@ select.form-control {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
   }
 }
 
@@ -2212,4 +2365,31 @@ select.form-control {
 .form-control:focus-visible {
   outline: var(--focus-outline);
   outline-offset: 2px;
+}
+
+/* Button Loading State */
+.btn--loading {
+  position: relative;
+  color: transparent;
+}
+
+.btn--loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  border-right-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
